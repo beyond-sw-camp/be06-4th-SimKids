@@ -27,8 +27,11 @@ pipeline {
               script {
                     // DockerFile로 image build
                     sh 'echo build중..'
-                    sh 'docker build --tag simkids/backend:1.$BUILD_ID ./cicd/jenkins/backend'
 
+                    sh '''
+                       cp backend/build/libs/backend-0.0.1-SNAPSHOT.jar cicd/jenkins/backend/
+                       docker build --tag simkids/backend:1.$BUILD_ID ./cicd/jenkins/backend
+                    '''
     //                  // Docker 로그인
     //                 withCredentials([usernamePassword(credentialsId: 'docker_credentials', usernameVariable: 'DOCKER_EMAIL', passwordVariable: 'DOCKER_PASSWORD')]) {
     //                     sh "docker login -u ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
