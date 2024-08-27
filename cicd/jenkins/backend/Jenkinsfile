@@ -12,34 +12,35 @@ pipeline {
 
         stage('Build') {
             steps {
-                 // gradlew 권한주고
-                sh 'chmod +x /var/lib/jenkins/workspace/backend-pipeline/backend/gradlew'
-                // greadlew 있는곳으로 cd
-                sh 'cd /var/lib/jenkins/workspace/backend-pipeline/backend'
-                // gradlew BootJar
-                sh './gradlew bootJar'
+                // gradlew 권한 부여 및 빌드
+                sh '''
+                chmod +x backend/gradlew
+                cd backend
+                ./gradlew bootJar
+                '''
             }
         }
 
-        stage('Dockerize') {
-            // DockerFile로 image build
-            
-            // DockerHub login -> 환경변수로 id pw
 
-            // Dockerhub push -> jenkins 환경변수 이용해서 태그 버전설정
-
-        }
-
-        stage('Send k8s yamls') {
-         // scp 명령어 ->
-
-
-        }
-
-
-        stage('Connect with master') {
-            // ssh 접속
-            // kubectl
-        }
+//         stage('Dockerize') {
+//             // DockerFile로 image build
+//
+//             // DockerHub login -> 환경변수로 id pw
+//
+//             // Dockerhub push -> jenkins 환경변수 이용해서 태그 버전설정
+//
+//         }
+//
+//         stage('Send k8s yamls') {
+//          // scp 명령어 ->
+//
+//
+//         }
+//
+//
+//         stage('Connect with master') {
+//             // ssh 접속
+//             // kubectl
+//         }
     }
 }
