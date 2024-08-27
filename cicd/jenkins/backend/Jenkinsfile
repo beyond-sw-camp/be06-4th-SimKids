@@ -1,0 +1,10 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git clone') {
+                steps {
+                        git branch: 'backend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
+                }
+        }
+}
