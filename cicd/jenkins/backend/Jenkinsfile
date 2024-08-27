@@ -39,9 +39,9 @@ pipeline {
                     sh 'echo docker push..'
                     sh 'docker push simkids/backend:1.$BUILD_ID'
               }
-
             }
         }
+    }
 //
 //         stage('Send k8s yamls') {
 //          // scp 명령어 ->
@@ -54,5 +54,5 @@ pipeline {
 //             // ssh 접속
 //             // kubectl
 //         }
-    }
+
 }
