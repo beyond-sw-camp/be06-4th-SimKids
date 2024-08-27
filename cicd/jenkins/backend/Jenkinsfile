@@ -22,18 +22,21 @@ pipeline {
         }
 
         stage('Dockerize') {
+            steps {
 
-            script {
-                // DockerFile로 image build
-                sh 'echo build중..'
-                sh 'docker build --tag simkids/backend:1.$BUILD_ID .'
+              script {
+                    // DockerFile로 image build
+                    sh 'echo build중..'
+                    sh 'docker build --tag simkids/backend:1.$BUILD_ID ./backend'
 
-//                  // Docker 로그인
-//                 withCredentials([usernamePassword(credentialsId: 'docker_credentials', usernameVariable: 'DOCKER_EMAIL', passwordVariable: 'DOCKER_PASSWORD')]) {
-//                     sh "docker login -u ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
-//                 }
-//                 // Docker Push
-//                 sh 'docker push sabujaks/backend:1.$BUILD_ID'
+    //                  // Docker 로그인
+    //                 withCredentials([usernamePassword(credentialsId: 'docker_credentials', usernameVariable: 'DOCKER_EMAIL', passwordVariable: 'DOCKER_PASSWORD')]) {
+    //                     sh "docker login -u ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
+    //                 }
+    //                 // Docker Push
+    //                 sh 'docker push sabujaks/backend:1.$BUILD_ID'
+                }
+
             }
         }
 //
