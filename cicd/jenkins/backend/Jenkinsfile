@@ -26,18 +26,18 @@ pipeline {
 
               script {
                     // DockerFile로 image build
-                    sh 'echo build중..'
+                    sh 'echo build..'
+                    sh 'docker build --tag simkids/backend:1.$BUILD_ID ./backend'
 
-                    sh '''
-                       cp backend/build/libs/backend-0.0.1-SNAPSHOT.jar cicd/jenkins/backend/
-                       docker build --tag simkids/backend:1.$BUILD_ID ./cicd/jenkins/backend
-                    '''
-    //                  // Docker 로그인
-    //                 withCredentials([usernamePassword(credentialsId: 'docker_credentials', usernameVariable: 'DOCKER_EMAIL', passwordVariable: 'DOCKER_PASSWORD')]) {
-    //                     sh "docker login -u ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
-    //                 }
-    //                 // Docker Push
-    //                 sh 'docker push sabujaks/backend:1.$BUILD_ID'
+                    // Docker Login
+                    sh 'echo login..'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                            sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                        }
+                    }
+                    // Docker Push
+                    sh 'echo docker push..'
+                    sh 'docker push simkids/backend:1.$BUILD_ID'
                 }
 
             }
