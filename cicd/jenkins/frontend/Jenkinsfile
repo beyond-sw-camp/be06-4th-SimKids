@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Git clone') {
             steps {
-                    sh 'mkdir test'
+                    sh 'mkdir test2'
                     git branch: 'frontend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
             }
         }
