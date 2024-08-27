@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment-old
+  name: backend-deployment-new
 spec:
   selector:
     matchLabels:
       type: backend
-      ver: v1
+      ver: v11
   replicas: 2
   strategy:
     type: RollingUpdate
@@ -15,11 +15,11 @@ spec:
     metadata:
       labels:
         type: backend
-        ver: v1
+        ver: v11
     spec:
       containers:
-        - name: backend
-          image: simkids/backend:1.20
+        - name: backend-new
+          image: simkids/backend:1.21
           readinessProbe:
             httpGet:
               path: /test
