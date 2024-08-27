@@ -21,15 +21,21 @@ pipeline {
             }
         }
 
+        stage('Dockerize') {
 
-//         stage('Dockerize') {
-//             // DockerFile로 image build
-//
-//             // DockerHub login -> 환경변수로 id pw
-//
-//             // Dockerhub push -> jenkins 환경변수 이용해서 태그 버전설정
-//
-//         }
+            script {
+                // DockerFile로 image build
+                sh 'echo build중..'
+                sh 'docker build --tag simkids/backend:1.$BUILD_ID .'
+
+//                  // Docker 로그인
+//                 withCredentials([usernamePassword(credentialsId: 'docker_credentials', usernameVariable: 'DOCKER_EMAIL', passwordVariable: 'DOCKER_PASSWORD')]) {
+//                     sh "docker login -u ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
+//                 }
+//                 // Docker Push
+//                 sh 'docker push sabujaks/backend:1.$BUILD_ID'
+            }
+        }
 //
 //         stage('Send k8s yamls') {
 //          // scp 명령어 ->
