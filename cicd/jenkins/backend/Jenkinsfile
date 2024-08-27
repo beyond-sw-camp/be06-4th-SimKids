@@ -3,10 +3,43 @@ pipeline {
 
     stages {
         stage('Git clone') {
-                steps {
-                        sh 'mkdir test'
-                        git branch: 'backend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
-                }
+            steps {
+                    // git clone
+                git branch: 'backend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
+            }
+
+        }
+
+        stage('Build') {
+            steps {
+                 // gradlew 권한주고
+                sh 'chmod +x /var/lib/jenkins/workspace/backend-pipeline/backend/gradlew'
+                // greadlew 있는곳으로 cd
+                sh 'cd /var/lib/jenkins/workspace/backend-pipeline/backend'
+                // gradlew BootJar
+                sh './gradlew bootJar'
+            }
+        }
+
+        stage('Dockerize') {
+            // DockerFile로 image build
+            
+            // DockerHub login -> 환경변수로 id pw
+
+            // Dockerhub push -> jenkins 환경변수 이용해서 태그 버전설정
+
+        }
+
+        stage('Send k8s yamls') {
+         // scp 명령어 ->
+
+
+        }
+
+
+        stage('Connect with master') {
+            // ssh 접속
+            // kubectl
         }
     }
 }
