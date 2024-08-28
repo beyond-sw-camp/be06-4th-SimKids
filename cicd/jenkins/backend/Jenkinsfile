@@ -71,7 +71,7 @@ pipeline {
 
                                         sleep 60
                                         # 카나리 배포 비율 업데이트 (10% -> 50% -> 100%)
-                                        for WEIGHT in 10 50 100; do
+                                        for WEIGHT in "10" "50" "100"; do
                                             echo "Updating Canary Weight to $WEIGHT%"
                                             sed -i "s/canary-weight: .*/canary-weight: \"$WEIGHT\"/" /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
