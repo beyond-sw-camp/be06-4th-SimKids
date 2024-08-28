@@ -94,9 +94,9 @@ pipeline {
                                             DEPLOY=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             SVC=$(kubectl get services --no-headers | grep -v "^backend-svc-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             INGRESS=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-                                            sed -i "s/${DEPLOY}.*$/backend-deployment-${CURRENT_VERSION}/g" /home/master/cicd/k8s/backend/backend-deployment.yml
-                                            sed -i "s/${SVC}.*$/backend-service-${CURRENT_VERSION}/g" /home/master/cicd/k8s/backend/backend-svc.yml
-                                            sed -i "s/${INGRESS}.*$/backend-ingress-${CURRENT_VERSION}/g" /home/master/cicd/k8s/backend/backend-ingress.yml
+                                               sed -i "s|${DEPLOY}.*|backend-deployment-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
+                                               sed -i "s|${SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
+                                               sed -i "s|${INGRESS}.*|backend-ingress-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
@@ -127,7 +127,7 @@ pipeline {
 
                                             # 50% 트래픽 전환
                                             echo "Updating Canary to 50% traffic"
-                                            sed -i 's/canary-weight: .*/canary-weight: "50"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i 's|canary-weight: .*|canary-weight: "50"|' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             # 50% 트래픽에 대해 헬스 체크
@@ -135,7 +135,7 @@ pipeline {
 
                                             # 100% 트래픽 전환
                                             echo "Finalizing Canary Deployment with 100% traffic"
-                                            sed -i 's/canary-weight: .*/canary-weight: "100"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i 's|canary-weight: .*|canary-weight: "100"|' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             # 최종 헬스 체크
