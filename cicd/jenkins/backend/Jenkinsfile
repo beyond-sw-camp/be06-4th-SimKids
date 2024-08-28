@@ -11,7 +11,7 @@ pipeline {
                 steps {
                     script {
                         // BUILD_NUMBER를 사용하여 버전 번호 설정
-                        def buildNumber = env.BUILD_NUMBER.toInteger()
+                        def buildNumber = env.BUILD_ID.toInteger()
                         def currentVersionNumber = BASE_VERSION + (buildNumber - 1)
                         env.CURRENT_VERSION = "v${currentVersionNumber}"
 
@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                     // Docker 이미지 빌드 및 푸시
-                    sh "docker build --tag simkids/backend:${CURRENT_VERSION} ./backend"
+                    sh "docker build --tag simkids/backend:${BUILD_ID} ./backend"
 
                     // Docker 로그인
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credential', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
@@ -54,7 +54,7 @@ pipeline {
                     }
 
                     // Docker 푸시
-                    sh "docker push simkids/backend:${CURRENT_VERSION}"
+                    sh "docker push simkids/backend:${BUILD_ID}"
                 }
             }
         }
