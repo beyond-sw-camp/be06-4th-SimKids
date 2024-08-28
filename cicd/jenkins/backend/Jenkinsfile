@@ -23,105 +23,94 @@ pipeline {
         stage('Dockerize') {
             steps {
                 script {
-                    // DockerFile로 image build
-                    sh 'echo build..'
+                    // Docker 이미지 빌드 및 푸시
                     sh 'docker build --tag simkids/backend:1.$BUILD_ID ./backend'
 
                     // Docker Login
-                    sh 'echo login..'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credential', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                     }
 
                     // Docker Push
-                    sh 'echo docker push..'
                     sh 'docker push simkids/backend:1.$BUILD_ID'
                 }
             }
         }
 
-        stage('sshPublish') {
+        stage('Deploy Canary') {
             steps {
                 script {
-                    def existingDeployment = sh(script: 'ssh master@192.0.30.14 "kubectl get deployments -o name | grep backend-deployment-new"', returnStdout: true).trim()
-                    def existingService = sh(script: 'ssh master@192.0.30.14 "kubectl get services -o name | grep backend-svc-new"', returnStdout: true).trim()
-                    def existingIngress = sh(script: 'ssh master@192.0.30.14 "kubectl get ingresses -o name | grep backend-ingress-new"', returnStdout: true).trim()
-
-                    // 기존 리소스가 있는지 확인하고 카나리 배포를 진행할 수 있도록 수정
-                    if (existingDeployment) {
-                        echo "Found existing deployment: $existingDeployment"
-                        sh '''
-                        ssh master@192.0.30.14 "
-                        kubectl get deployment backend-deployment-new -o yaml | sed 's/name: backend-deployment/name: backend-deployment-old/g' | kubectl apply -f -
-                        "
-                        '''
-                    }
-
-                    if (existingService) {
-                        echo "Found existing service: $existingService"
-                        sh '''
-                        ssh master@192.0.30.14 "
-                        kubectl get service backend-svc-new -o yaml | sed 's/name: backend-svc/name: backend-svc-old/g' | kubectl apply -f -
-                        "
-                        '''
-                    }
-
-                    if (existingIngress) {
-                        echo "Found existing ingress: $existingIngress"
-                        sh '''
-                        ssh master@192.0.30.14 "
-                        kubectl get ingress backend-ingress-new -o yaml | sed 's/name: backend-ingress/name: backend-ingress-old/g' | sed 's/canary-by-header-value: old/canary-by-header-value: old/g' | kubectl apply -f -
-                        "
-                        '''
-                    }
-
-                    // 전송할 파일의 이름에 DEPLOYMENT_VERSION을 추가
+                    // 파일 전송 및 배포 시작
                     sshPublisher(
-                        // 오류 발생 시 진행을 멈춤
                         continueOnError: false,
-                        // 오류 발생 시 파이프라인을 실패시킴
                         failOnError: true,
-                        // 전송자 목록
                         publishers: [
-                            // SSH 전송 설명
                             sshPublisherDesc(
-                                // SSH 서버 설정 이름 지정 ( master 노드 )
                                 configName: "k8s-master",
-                                // 자세한 출력 모드 활성화
                                 verbose: true,
                                 transfers: [
                                     sshTransfer(
-                                        // 전송할 파일을 쉼표로 구분한 문자열로 지정
-                                        sourceFiles: 'cicd/k8s/backend/backend-deployment.yml, cicd/k8s/backend/backend-ingress.yml, cicd/k8s/backend/backend-svc.yml',
-                                        // 원격 디렉토리 지정 ( 원격서버로 파일을 전송할 위치 )
+                                        sourceFiles: 'cicd/k8s/backend/backend-deployment.yml, cicd/k8s/backend/backend-svc.yml, cicd/k8s/backend/backend-ingress.yml',
                                         remoteDirectory: "/home/master/",
-                                        // 전송 후 야멜 파일 실행
                                         execCommand: '''
+                                            # 새 버전 배포 - Deployment, Service, Ingress에 레이블을 new로 설정
+                                            sed -i 's/canary-version: old/canary-version: new/' /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            sed -i 's/canary-version: old/canary-version: new/' /home/master/cicd/k8s/backend/backend-svc.yml
+                                            sed -i 's/canary-version: old/canary-version: new/' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             sed -i "s/latest/1.$BUILD_ID/g" /home/master/cicd/k8s/backend/backend-deployment.yml
+
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
 
                                             sleep 60
-                                            # 카나리 배포 비율 업데이트 (10% -> 50% -> 100%)
-                                            for WEIGHT in "10" "50" "100"; do
-                                                echo "Updating Canary Weight to $WEIGHT%"
-                                                sed -i 's/canary-weight: .*/canary-weight: "'$WEIGHT'"/' /home/master/cicd/k8s/backend/backend-ingress.yml
-                                                kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
-                                                # 1분 동안 상태 체크 (5초 간격으로 12번 확인)
-                                                echo "Checking health for 1 minute with $WEIGHT% traffic..."
-                                                for i in {1..12}; do
-                                                    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
-                                                    if [ "$HTTP_STATUS" != "200" ]; then
-                                                        echo "Error: Service did not return 200 status. Exiting..."
-                                                        exit 1
-                                                    fi
-                                                    sleep 5
-                                                done
+                                            # 카나리 배포 시작 - 10% 트래픽 전환
+                                            echo "Starting Canary Deployment with 10% traffic"
+                                            sed -i 's/canary-weight: .*/canary-weight: "10%"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
+
+                                            # 1분 동안 헬스 체크
+                                            for i in {1..12}; do
+                                                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
+                                                if [ "$HTTP_STATUS" != "200" ]; then
+                                                    echo "Error: Service did not return 200 status. Exiting..."
+                                                    exit 1
+                                                fi
+                                                sleep 5
                                             done
 
-                                            echo "카나리 배포 성공! 100% traffic 전환 완료"
+                                            # 50% 트래픽 전환
+                                            echo "Updating Canary to 50% traffic"
+                                            sed -i 's/canary-weight: .*/canary-weight: "50%"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
+
+                                            # 1분 동안 헬스 체크
+                                            for i in {1..12}; do
+                                                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
+                                                if [ "$HTTP_STATUS" != "200" ]; then
+                                                    echo "Error: Service did not return 200 status. Exiting..."
+                                                    exit 1
+                                                fi
+                                                sleep 5
+                                            done
+
+                                            # 100% 트래픽 전환
+                                            echo "Finalizing Canary Deployment with 100% traffic"
+                                            sed -i 's/canary-weight: .*/canary-weight: "100%"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
+
+                                            # 최종 헬스 체크
+                                            for i in {1..12}; do
+                                                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
+                                                if [ "$HTTP_STATUS" != "200" ]; then
+                                                    echo "Error: Service did not return 200 status. Exiting..."
+                                                    exit 1
+                                                fi
+                                                sleep 5
+                                            done
+
+                                            echo "카나리 배포 성공! 100% 트래픽 전환 완료"
                                         '''
                                     )
                                 ]
@@ -135,24 +124,31 @@ pipeline {
 
     post {
         failure {
-            // 실패 시 리소스 정리
+            // 실패 시 롤백 작업
             sh '''
             echo '배포가 실패했습니다. k8s 리소스를 정리합니다.'
             ssh master@192.0.30.14 '
-            kubectl delete deployment backend-deployment-new
-            kubectl delete service backend-svc-new
-            kubectl delete ingress backend-ingress-new
+            # 실패 시 새 리소스 롤백 (Deployment, Service, Ingress)
+            kubectl delete deployment -l canary-version=new
+            kubectl delete service -l canary-version=new
+            kubectl delete ingress -l canary-version=new
             '
             '''
         }
         success {
-            // 기존에 실행되던 k8s 리소스들 전부 제거
+            // 배포 성공 시 기존 리소스 제거 및 레이블 업데이트
             sh '''
-            echo '카나리 배포가 완료되어 기존 리소스를 전부 삭제합니다.'
+            echo '카나리 배포가 완료되어 기존 리소스를 삭제하고 레이블을 업데이트합니다.'
             ssh master@192.0.30.14 '
-            kubectl delete deployment backend-deployment-old
-            kubectl delete service backend-svc-old
-            kubectl delete ingress backend-ingress-old
+            # 기존 리소스 삭제 (Deployment, Service, Ingress)
+            kubectl delete deployment -l canary-version=old
+            kubectl delete service -l canary-version=old
+            kubectl delete ingress -l canary-version=old
+
+            # 새 리소스를 old로 변경 (Deployment, Service, Ingress)
+            kubectl label deployment -l canary-version=new canary-version=old --overwrite
+            kubectl label service -l canary-version=new canary-version=old --overwrite
+            kubectl label ingress -l canary-version=new canary-version=old --overwrite
             '
             '''
         }
