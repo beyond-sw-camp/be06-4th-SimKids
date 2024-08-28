@@ -5,6 +5,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "50"
+    nginx.ingress.kubernetes.io/canary-by-header: "canary-version"
+    nginx.ingress.kubernetes.io/canary-by-header-value: "new"
+#    test헤더 붙은애는 new
 spec:
   ingressClassName: nginx
   rules:
