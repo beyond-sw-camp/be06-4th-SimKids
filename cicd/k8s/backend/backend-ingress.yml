@@ -1,9 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: backend-ingress
-  labels:
-    canary-version: old
+  name: backend-ingress-v0
 
   annotations:
     nginx.ingress.kubernetes.io/canary: "true"
@@ -16,7 +14,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /
+          - path: /1
             pathType: Prefix
             backend:
               service:

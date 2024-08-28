@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
-  labels:
-    canary-version: old
+  name: backend-deployment-v0
 spec:
   selector:
     matchLabels:

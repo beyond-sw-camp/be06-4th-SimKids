@@ -1,9 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-svc
-  labels:
-    canary-version: old
+  name: backend-svc-v0
 
 spec:
   selector:
