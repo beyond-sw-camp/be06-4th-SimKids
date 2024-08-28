@@ -42,7 +42,7 @@ pipeline {
             }
         }
 
-        stage('deployment'){
+        stage('sshPublish'){
             steps {
                     // SSH 전송 플러그인 사용
                     sshPublisher(
