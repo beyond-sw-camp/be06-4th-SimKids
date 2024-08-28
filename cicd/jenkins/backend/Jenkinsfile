@@ -88,7 +88,7 @@ pipeline {
 
                                             sed -i "s|nginx.ingress.kubernetes.io/canary: \\"true\\"|nginx.ingress.kubernetes.io/canary: \\"false\|g" /home/master/cicd/k8s/backend/backend-ingress.yml
 
-                                            sed -i "s|image: simkids/backend:.*|image: simkids/backend:${CURRENT_VERSION}|" /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            sed -i "s|image: simkids/backend:.*|image: simkids/backend:${BUILD_ID}|" /home/master/cicd/k8s/backend/backend-deployment.yml
 
                                             # 업데이트된 Deployment, Service, Ingress 적용
                                             sed -i "s/backend-deployment-${PREVIOUS_VERSION}.*$/backend-deployment-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-deployment.yml
