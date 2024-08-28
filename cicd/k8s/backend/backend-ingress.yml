@@ -2,6 +2,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: backend-ingress
+  labels:
+    app: backend
+    canary-version: old
 
   annotations:
     nginx.ingress.kubernetes.io/canary: "true"
