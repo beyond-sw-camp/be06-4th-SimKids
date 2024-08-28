@@ -61,14 +61,13 @@ pipeline {
                                 transfers: [
                                     sshTransfer(
                                         // 전송할 파일 지정
-                                        sourceFiles: [
+                                        sourceFiles:
                                             "../../k8s/backend/backend-deployment.yml",
                                             "../../k8s/backend/backend-deployment-new.yml",
                                             "../../k8s/backend/backend-ingress.yml",
                                             "../../k8s/backend/backend-ingress-new.yml",
                                             "../../k8s/backend/backend-svc.yml",
                                             "../../k8s/backend/backend-svc-new.yml",
-                                        ],
                                         // 원격 디렉토리 지정 ( 원격서버로 파일을 전송할 위치 )
                                         remoteDirectory: "/home/master/",
                                         // 전송 후 야멜 파일의 VERSION을 파이프라인 빌드 숫자로 변경
