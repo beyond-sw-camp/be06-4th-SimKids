@@ -86,6 +86,10 @@ pipeline {
                                             echo ${CURRENT_VERSION}
                                             echo ${PREVIOUS_VERSION}
 
+`                                           kubectl get deployments --no-headers | grep ^backend- > /dev/null 2>&1
+                                            if [ $? -eq 1 ]; then
+                                                sed -i 's|nginx.ingress.kubernetes.io/canary: "true"|nginx.ingress.kubernetes.io/canary: "false"|' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            fi
                                             sed -i "s|image: simkids/backend:.*|image: simkids/backend:${CURRENT_VERSION}|" /home/master/cicd/k8s/backend/backend-deployment.yml
 
                                             # 업데이트된 Deployment, Service, Ingress 적용
