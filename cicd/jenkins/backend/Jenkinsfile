@@ -86,8 +86,6 @@ pipeline {
                                             echo ${CURRENT_VERSION}
                                             echo ${PREVIOUS_VERSION}
 
-                                            sed -i "s|nginx.ingress.kubernetes.io/canary: \\"true\\"|nginx.ingress.kubernetes.io/canary: \\"false\\"|g" /home/master/cicd/k8s/backend/backend-ingress.yml
-
                                             sed -i "s|image: simkids/backend:.*|image: simkids/backend:${BUILD_ID}|" /home/master/cicd/k8s/backend/backend-deployment.yml
 
                                             # 업데이트된 Deployment, Service, Ingress 적용
@@ -168,9 +166,12 @@ pipeline {
             echo '카나리 배포가 완료되어 기존 리소스를 삭제하고 새 버전으로 업데이트합니다.'
             ssh master@192.0.30.14 '
             # 이전 버전 삭제 (Deployment, Service, Ingress)
-            kubectl delete deployment backend-deployment-${PREVIOUS_VERSION}
-            kubectl delete service backend-service-${PREVIOUS_VERSION}
-            kubectl delete ingress backend-ingress-${PREVIOUS_VERSION}
+            TO_DELETE_DEPLOY=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+            TO_DELETE_SVC=$(kubectl get services --no-headers | grep -v "^backend-svc-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+            TO_DELETE_INGRESS=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+            kubectl delete ingress backend-ingress-${TO_DELETE_INGRESS}
+            kubectl delete service backend-service-${TO_DELETE_SVC}
+            kubectl delete deployment ${TO_DELETE_DEPLOY}
             '
             '''
         }
