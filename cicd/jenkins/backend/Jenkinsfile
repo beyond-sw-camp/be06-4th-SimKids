@@ -61,7 +61,8 @@ pipeline {
                                         execCommand: '''
                                             # 새 버전 배포
                                             sed -i "s|image: simkids/backend:.*|image: simkids/backend:${CURRENT_VERSION}|" /home/master/cicd/k8s/backend/backend-deployment.yml
-
+                                            cat /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            echo ${PREVIOUS_VERSION}
                                             # 업데이트된 Deployment, Service, Ingress 적용
                                             sed -i "s/backend-deployment-${PREVIOUS_VERSION}.*$/backend-deployment-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-deployment.yml
                                             sed -i "s/backend-service-${PREVIOUS_VERSION}.*$/backend-service-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-svc.yml
