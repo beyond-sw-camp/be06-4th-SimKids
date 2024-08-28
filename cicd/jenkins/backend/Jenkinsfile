@@ -69,19 +69,18 @@ pipeline {
                                         kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
                                         kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
 
-                                        sleep 20
+                                        sleep 60
                                         # 카나리 배포 비율 업데이트 (10% -> 50% -> 100%)
                                         for WEIGHT in "10" "50" "100"; do
                                             echo "Updating Canary Weight to $WEIGHT%"
                                             sed -i 's/canary-weight: .*/canary-weight: "'$WEIGHT'"/' /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            cat /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
 
                                             # 1분 동안 상태 체크 (5초 간격으로 12번 확인)
                                             echo "Checking health for 1 minute with $WEIGHT% traffic..."
                                             for i in {1..12}; do
-                                                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://192.0.30.101/test)
+                                                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
                                                 if [ "$HTTP_STATUS" != "200" ]; then
                                                     echo "Error: Service did not return 200 status. Exiting..."
                                                     exit 1
@@ -112,6 +111,7 @@ pipeline {
             // 실패 시 리소스 정리
             sh '''
             echo '배포가 실패했습니다. k8s 리소스를 정리합니다.'
+            ssh master@192.0.30.14
             kubectl delete deployment backend-deployment
             kubectl delete service backend-svc
             kubectl delete ingress backend-ingress
