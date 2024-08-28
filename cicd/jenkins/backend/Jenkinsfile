@@ -59,11 +59,11 @@ pipeline {
                                             sed -i 's/canary-version: old/canary-version: new/' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             sed -i "s/latest/1.$BUILD_ID/g" /home/master/cicd/k8s/backend/backend-deployment.yml
 
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
+                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
-                                            sleep 60
+                                            sleep 3
 
                                             # 카나리 배포 시작 - 10% 트래픽 전환
                                             echo "Starting Canary Deployment with 10% traffic"
@@ -77,7 +77,7 @@ pipeline {
                                                     echo "Error: Service did not return 200 status. Exiting..."
                                                     exit 1
                                                 fi
-                                                sleep 5
+                                                sleep 1
                                             done
 
                                             # 50% 트래픽 전환
@@ -92,7 +92,7 @@ pipeline {
                                                     echo "Error: Service did not return 200 status. Exiting..."
                                                     exit 1
                                                 fi
-                                                sleep 5
+                                                sleep 1
                                             done
 
                                             # 100% 트래픽 전환
@@ -107,7 +107,7 @@ pipeline {
                                                     echo "Error: Service did not return 200 status. Exiting..."
                                                     exit 1
                                                 fi
-                                                sleep 5
+                                                sleep 1
                                             done
 
                                             echo "카나리 배포 성공! 100% 트래픽 전환 완료"
