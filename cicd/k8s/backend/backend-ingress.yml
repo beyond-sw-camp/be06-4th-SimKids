@@ -5,8 +5,8 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "10"
-    nginx.ingress.kubernetes.io/canary-by-header: "canary-version"
-    nginx.ingress.kubernetes.io/canary-by-header-value: "new"
+#    nginx.ingress.kubernetes.io/canary-by-header: "canary-version"
+#    nginx.ingress.kubernetes.io/canary-by-header-value: "new"
 
 spec:
   ingressClassName: nginx
