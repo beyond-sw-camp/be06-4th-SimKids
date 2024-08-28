@@ -21,6 +21,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: simkids/frontend:1.2
+          image: simkids/frontend:latest
           ports:
             - containerPort: 80
