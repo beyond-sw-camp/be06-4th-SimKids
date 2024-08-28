@@ -111,10 +111,7 @@ pipeline {
             // 실패 시 리소스 정리
             sh '''
             echo '배포가 실패했습니다. k8s 리소스를 정리합니다.'
-            ssh master@192.0.30.14
-            kubectl delete deployment backend-deployment
-            kubectl delete service backend-svc
-            kubectl delete ingress backend-ingress
+            ssh master@192.0.30.14 'kubectl delete deployment backend-deployment; kubectl delete service backend-svc; kubectl delete ingress backend-ingress'
             '''
         }
         success {
