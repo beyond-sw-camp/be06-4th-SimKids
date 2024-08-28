@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: backend-deployment
   labels:
-    app: backend
     canary-version: old
 spec:
   selector:

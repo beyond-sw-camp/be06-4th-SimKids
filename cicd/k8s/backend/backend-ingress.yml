@@ -3,7 +3,6 @@ kind: Ingress
 metadata:
   name: backend-ingress
   labels:
-    app: backend
     canary-version: old
 
   annotations:

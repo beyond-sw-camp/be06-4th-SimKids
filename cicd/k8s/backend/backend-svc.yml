@@ -3,7 +3,6 @@ kind: Service
 metadata:
   name: backend-svc
   labels:
-    app: backend
     canary-version: old
 
 spec:

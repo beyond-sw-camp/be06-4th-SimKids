@@ -149,6 +149,7 @@ pipeline {
             kubectl label deployment -l canary-version=new canary-version=old --overwrite
             kubectl label service -l canary-version=new canary-version=old --overwrite
             kubectl label ingress -l canary-version=new canary-version=old --overwrite
+            sed -i 's/nginx.ingress.kubernetes.io/canary-by-header-value: "new"/nginx.ingress.kubernetes.io/canary-by-header-value: "old"/g' /home/master/cicd/k8s/backend/backend-ingress.yml
             '
             '''
         }
