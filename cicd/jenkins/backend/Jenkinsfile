@@ -67,7 +67,7 @@ pipeline {
 
                                             # 카나리 배포 시작 - 10% 트래픽 전환
                                             echo "Starting Canary Deployment with 10% traffic"
-                                            sed -i 's/canary-weight: .*/canary-weight: "10%"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i 's/canary-weight: .*/canary-weight: "10"/' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             # 1분 동안 헬스 체크
@@ -82,7 +82,7 @@ pipeline {
 
                                             # 50% 트래픽 전환
                                             echo "Updating Canary to 50% traffic"
-                                            sed -i 's/canary-weight: .*/canary-weight: "50%"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i 's/canary-weight: .*/canary-weight: "50"/' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             # 1분 동안 헬스 체크
@@ -96,8 +96,8 @@ pipeline {
                                             done
 
                                             # 100% 트래픽 전환
-                                            echo "Finalizing Canary Deployment with 100% traffic"
-                                            sed -i 's/canary-weight: .*/canary-weight: "100%"/' /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            echo "Finalizing Canary Deployment with 100 traffic"
+                                            sed -i 's/canary-weight: .*/canary-weight: "100"/' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             # 최종 헬스 체크
