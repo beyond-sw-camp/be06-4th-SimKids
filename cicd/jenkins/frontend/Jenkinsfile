@@ -4,8 +4,77 @@ pipeline {
     stages {
         stage('Git clone') {
             steps {
-                    sh 'mkdir test2'
-                    git branch: 'frontend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
+                // git clone
+                git branch: 'frontend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // npm 빌드
+                sh '''
+                cd frontend
+                npm run build
+                '''
+            }
+        }
+
+        stage('Dockerize') {
+            steps {
+                script {
+                    // DockerFile로 image build
+                    sh 'echo build..'
+                    sh 'docker build --tag simkids/frontend:1.$BUILD_ID ./frontend'
+
+                    // Docker Login
+                    sh 'echo login..'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credential', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                            sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                    }
+
+                    // Docker Push
+                    sh 'echo docker push..'
+                    sh 'docker push simkids/frontend:1.$BUILD_ID'
+                }
+            }
+        }
+
+        stage('sshPublish'){
+            steps {
+                // SSH 전송 플러그인 사용
+                sshPublisher(
+                    // 오류 발생 시 진행을 멈춤
+                    continueOnError: false,
+                    // 오류 발생 시 파이프라인을 실패시킴
+                    failOnError: true,
+                    // 전송자 목록
+                    publishers: [
+                        // SSH 전송 설명
+                        sshPublisherDesc(
+                            // SSH 서버 설정 이름 지정 ( master 노드 )
+                            configName: "k8s-master",
+                            // 자세한 출력 모드 활성화
+                            verbose: true,
+                            transfers: [
+                                sshTransfer(
+                                    // 전송할 파일을 쉼표로 구분한 문자열로 지정
+                                    sourceFiles: 'cicd/k8s/frontend/frontend-deployment.yml, cicd/k8s/frontend/frontend-deployment-new.yml, cicd/k8s/frontend/frontend-ingress.yml, cicd/k8s/frontend/frontend-ingress-new.yml, cicd/k8s/frontend/frontend-svc.yml, cicd/k8s/frontend/frontend-svc-new.yml',
+                                    // 원격 디렉토리 지정 ( 원격서버로 파일을 전송할 위치 )
+                                    remoteDirectory: "/home/master/",
+                                    // 전송 후 야멜 파일 실행
+                                    execCommand: '''
+                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-deployment.yml
+                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-deployment-new.yml
+                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-ingress.yml
+                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-ingress-new.yml
+                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-svc.yml
+                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-svc-new.yml
+                                    '''
+                                )
+                            ]
+                        )
+                    ]
+                )
             }
         }
     }
