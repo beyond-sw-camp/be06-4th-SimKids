@@ -1,7 +1,7 @@
-![image](https://github.com/user-attachments/assets/1294699d-f09c-4199-bacb-dc5c653a77e6)
-<br><br>
+
+
 ---
-## 🧑🏻‍💻 팀원 구성
+## 1. 팀원 구성
 
 | **강태성** | **유송연** | **오규림** | **송나경** | **김은선** |
 |:---------:|:---------:|:---------:|:---------:|:---------:|
@@ -9,8 +9,9 @@
 | [@kangkings](https://github.com/kangkings) | [@syy0O](https://github.com/syy0O) | [@ohgyulim](https://github.com/ohgyulim) | [@NakyungSong](https://github.com/NakyungSong) | [@kkkeess](https://github.com/kkkeess) |
 
 <br><br>
+
 ---
-## ⛓️ 기술 스택
+## 2. 기술 스택
 <h4> Backend</h4>
 <div class="stack-container">
     <img src="https://img.shields.io/badge/linux-FCC624?style=for-the-badge&logo=linux&logoColor=white">
@@ -45,29 +46,42 @@
 </div>
 
 <br><br>
+
 ---
 
-## 프로젝트 소개
+## 3. 프로젝트 목표
 <br><br>
+
 ---
-## 프로젝트 목표
+## 4. CI|CD 시나리오
 <br><br>
+
 ---
-## CI|CD 시나리오
+## 5. 운영 환경
 <br><br>
+
 ---
-## 운영 환경
-<br><br>
----
-## 시스템 아키텍쳐
+## 6. 시스템 아키텍쳐
+개발자가 GitHub에 코드를 push하면, GitHub가 Jenkins에 웹훅을 보내 빌드 프로세스를 시작합니다.<br>
+Jenkins는 Docker 이미지를 빌드하여 Docker Hub에 업로드하고, Kubernetes는 배포된 이미지를 받아 새로운 파드를 생성하여 백엔드와 프론트엔드 서비스를 배포합니다.
+
 ![시스템아키텍처_수정2](https://github.com/user-attachments/assets/b5c6ce37-b286-47fb-b2b9-e27dd3a10176)
 
+### 6.1 배포 환경
 
+ Kubernetes에 Ingress Controller Service를 이용한 카나리 배포 환경을 구축하였습니다. <br>
+새로운 서비스가 생성될 때, 기존의 서비스와 업데이트된 서비스는 70:30 비율로 트래픽이 분산됩니다.
+
+### 6.2 상세 구성
+
+ 프론트엔드와 백엔드 서비스는 두 개의 디플로이먼트를 가지고 있으며, 각각의 디플로이먼트는 Old버전과 New버전을 관리합니다. <br>
+디플로이먼트는 두 개의 Pod를 Rolling Update방식으로 생성하며, Pod 생성 시 Probe를 설정하여 Down Time을 최소화하였습니다.
 
 
 <br><br>
+
 ---
-## 📨 Canary 무중단 배포 방식을 선택한 이유
+## 7. Canary 무중단 배포 방식을 선택한 이유
 Canary 배포는 새로운 버전을 소수의 사용자에게 먼저 배포한 후, 시스템의 안정성을 모니터링하여 문제 발생 여부를 판단합니다.
 <br>초기 배포 단계에서 문제가 없다면, 점진적으로 더 많은 사용자에게 배포를 확대해 나갑니다. 만약 문제가 발견되면 즉시 롤백하여 영향을 최소화할 수 있다는 장점이 있습니다.
 
