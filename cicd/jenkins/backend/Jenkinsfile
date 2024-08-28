@@ -83,6 +83,8 @@ pipeline {
                                                 . /home/master/env.properties
                                             set +a
 
+                                            source env.properties
+
                                             echo ${CURRENT_VERSION}
                                             echo ${PREVIOUS_VERSION}
 
@@ -158,6 +160,7 @@ pipeline {
             echo '배포가 실패했습니다. k8s 리소스를 정리합니다.'
             ssh master@192.0.30.14 '
             # 실패 시 새 리소스 롤백 (Deployment, Service, Ingress)
+            source env.properties
             kubectl delete deployment backend-deployment-${CURRENT_VERSION}
             kubectl delete service backend-service-${CURRENT_VERSION}
             kubectl delete ingress backend-ingress-${CURRENT_VERSION}
@@ -170,11 +173,12 @@ pipeline {
             echo '카나리 배포가 완료되어 기존 리소스를 삭제하고 새 버전으로 업데이트합니다.'
             ssh master@192.0.30.14 '
             # 이전 버전 삭제 (Deployment, Service, Ingress)
+            source env.properties
             TO_DELETE_DEPLOY=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
             TO_DELETE_SVC=$(kubectl get services --no-headers | grep -v "^backend-svc-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
             TO_DELETE_INGRESS=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-            kubectl delete ingress backend-ingress-${TO_DELETE_INGRESS}
-            kubectl delete service backend-service-${TO_DELETE_SVC}
+            kubectl delete ingress ${TO_DELETE_INGRESS}
+            kubectl delete service ${TO_DELETE_SVC}
             kubectl delete deployment ${TO_DELETE_DEPLOY}
             sed -i 's|nginx.ingress.kubernetes.io/canary-by-header-value: "new"|nginx.ingress.kubernetes.io/canary-by-header-value: "old"|' /home/master/cicd/k8s/backend/backend-ingress.yml
             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
