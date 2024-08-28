@@ -86,7 +86,7 @@ pipeline {
                                             echo ${CURRENT_VERSION}
                                             echo ${PREVIOUS_VERSION}
 
-                                            sed -i "s|nginx.ingress.kubernetes.io/canary: \\"true\\"|nginx.ingress.kubernetes.io/canary: \\"false\|g" /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i "s|nginx.ingress.kubernetes.io/canary: \\"true\\"|nginx.ingress.kubernetes.io/canary: \\"false\\"|g" /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             sed -i "s|image: simkids/backend:.*|image: simkids/backend:${BUILD_ID}|" /home/master/cicd/k8s/backend/backend-deployment.yml
 
