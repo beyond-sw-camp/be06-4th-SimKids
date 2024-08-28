@@ -64,12 +64,12 @@ pipeline {
                                     remoteDirectory: "/home/master/",
                                     // 전송 후 야멜 파일 실행
                                     execCommand: '''
-                                        kubectl apply -f /home/master/backend-deployment.yml
-                                        kubectl apply -f /home/master/backend-deployment-new.yml
-                                        kubectl apply -f /home/master/backend-ingress.yml
-                                        kubectl apply -f /home/master/backend-ingress-new.yml
-                                        kubectl apply -f /home/master/backend-svc.yml
-                                        kubectl apply -f /home/master/backend-svc-new.yml
+                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
+                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment-new.yml
+                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
+                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress-new.yml
+                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
+                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-svc-new.yml
                                     '''
                                 )
                             ]
