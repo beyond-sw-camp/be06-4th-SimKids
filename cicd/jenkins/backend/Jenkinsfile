@@ -59,6 +59,7 @@ pipeline {
                                             sed -i 's/canary-version: old/canary-version: new/' /home/master/cicd/k8s/backend/backend-ingress.yml
                                             sed -i "s/latest/1.$BUILD_ID/g" /home/master/cicd/k8s/backend/backend-deployment.yml
 
+                                            cat /home/master/cicd/k8s/backend/backend-ingress.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
