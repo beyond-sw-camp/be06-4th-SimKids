@@ -107,7 +107,7 @@ pipeline {
                                             # 헬스 체크 함수 정의
                                             check_health() {
                                                 for i in {1..12}; do
-                                                    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://192.0.30.101/test)
+                                                    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
                                                     if [ "$HTTP_STATUS" != "200" ]; then
                                                         echo "Error: Service did not return 200 status. Exiting..."
                                                         exit 1
@@ -172,6 +172,8 @@ pipeline {
             kubectl delete ingress backend-ingress-${TO_DELETE_INGRESS}
             kubectl delete service backend-service-${TO_DELETE_SVC}
             kubectl delete deployment ${TO_DELETE_DEPLOY}
+            sed -i 's|nginx.ingress.kubernetes.io/canary-by-header-value: "new"|nginx.ingress.kubernetes.io/canary-by-header-value: "old"|' /home/master/cicd/k8s/backend/backend-ingress.yml
+            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
             '
             '''
         }
