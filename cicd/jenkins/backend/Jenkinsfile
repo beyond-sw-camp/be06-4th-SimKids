@@ -59,17 +59,15 @@ pipeline {
                             transfers: [
                                 sshTransfer(
                                     // 전송할 파일을 쉼표로 구분한 문자열로 지정
-                                    sourceFiles: 'cicd/k8s/backend/backend-deployment.yml, cicd/k8s/backend/backend-deployment-new.yml, cicd/k8s/backend/backend-ingress.yml, cicd/k8s/backend/backend-ingress-new.yml, cicd/k8s/backend/backend-svc.yml, cicd/k8s/backend/backend-svc-new.yml',
+                                    sourceFiles: 'cicd/k8s/backend/backend-deployment.yml, cicd/k8s/backend/backend-ingress.yml, cicd/k8s/backend/backend-svc.yml',
                                     // 원격 디렉토리 지정 ( 원격서버로 파일을 전송할 위치 )
                                     remoteDirectory: "/home/master/",
                                     // 전송 후 야멜 파일 실행
                                     execCommand: '''
+                                        sed -i "s/latest/1.$BUILD_ID/g" /home/master/cicd/k8s/backend/backend-deployment.yml
                                         kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
-                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment-new.yml
                                         kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
-                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress-new.yml
                                         kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
-                                        kubectl apply -f /home/master/cicd/k8s/backend/backend-svc-new.yml
                                     '''
                                 )
                             ]

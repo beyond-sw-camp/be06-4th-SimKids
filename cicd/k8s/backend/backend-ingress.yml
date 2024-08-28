@@ -1,7 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: backend-ingress-old
+  name: backend-ingress-new
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "50"
 spec:
   ingressClassName: nginx
   rules:
@@ -11,6 +14,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: backend-svc-old
+                name: backend-svc-new
                 port:
                   number: 8080
