@@ -64,7 +64,7 @@ pipeline {
                                     remoteDirectory: "/home/master/",
                                     // 전송 후 야멜 파일 실행
                                     execCommand: '''
-                                        sed -i "s/latest/1.$BUILD_ID/g" frontend-deployment.yml
+                                        sed -i "s/latest/1.2/g" frontend-deployment.yml
                                         kubectl apply -f /home/master/cicd/k8s/frontend/frontend-deployment.yml
                                         kubectl apply -f /home/master/cicd/k8s/frontend/frontend-ingress.yml
                                         kubectl apply -f /home/master/cicd/k8s/frontend/frontend-svc.yml
