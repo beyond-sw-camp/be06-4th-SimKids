@@ -68,6 +68,9 @@ pipeline {
                                                 . /home/master/env.properties
                                             set +a
 
+                                            echo ${CURRENT_VERSION}
+                                            echo ${PREVIOUS_VERSION}
+
                                             sed -i "s|image: simkids/backend:.*|image: simkids/backend:${CURRENT_VERSION}|" /home/master/cicd/k8s/backend/backend-deployment.yml
 
                                             # 업데이트된 Deployment, Service, Ingress 적용
