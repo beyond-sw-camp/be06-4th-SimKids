@@ -70,13 +70,26 @@ pipeline {
                                         kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
 
                                         sleep 20
+
                                         # 카나리 배포 비율 업데이트 (10% -> 50% -> 100%)
                                         for WEIGHT in "10" "50" "100"; do
                                             echo "Updating Canary Weight to $WEIGHT%"
-                                            sed -i "s/canary-weight: .*/canary-weight: \"$WEIGHT\"/" /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            cat /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
+                                            # `canary-weight` 값을 문자열로 감싸서 수정
+                                            TEMP_FILE=$(mktemp)
+                                            awk -v weight="$WEIGHT" '
+                                            /nginx.ingress.kubernetes.io\/canary-weight/ {
+                                                sub(/nginx.ingress.kubernetes.io\/canary-weight: .*/, "nginx.ingress.kubernetes.io/canary-weight: \"" weight "\"")
+                                            }
+                                            { print }
+                                            ' /home/master/cicd/k8s/backend/backend-ingress.yml > $TEMP_FILE
+                                            mv $TEMP_FILE /home/master/cicd/k8s/backend/backend-ingress.yml
+
+                                            # 파일 내용 확인
+                                            cat /home/master/cicd/k8s/backend/backend-ingress.yml
+
+                                            # Kubernetes에 적용
+                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             # 1분 동안 상태 체크 (5초 간격으로 12번 확인)
                                             echo "Checking health for 1 minute with $WEIGHT% traffic..."
