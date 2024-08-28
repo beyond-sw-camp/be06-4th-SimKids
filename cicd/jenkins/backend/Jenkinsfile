@@ -59,7 +59,7 @@ pipeline {
                             transfers: [
                                 sshTransfer(
                                     // 전송할 파일을 하나의 문자열로 지정
-                                    sourceFiles: './cicd/k8s/backend/backend-deployment.yml',
+                                    sourceFiles: '/var/lib/jenkins/workspace/backend-pipeline/cicd/k8s/backend/backend-deployment.yml',
                                     //, ./cicd/k8s/backend/backend-deployment-new.yml, ./cicd/k8s/backend/backend-ingress.yml, ./cicd/k8s/backend/backend-ingress-new.yml, ./cicd/k8s/backend/backend-svc.yml, ./cicd/k8s/backend/backend-svc-new.yml',
                                     // 원격 디렉토리 지정 ( 원격서버로 파일을 전송할 위치 )
                                     remoteDirectory: "/home/master/",
