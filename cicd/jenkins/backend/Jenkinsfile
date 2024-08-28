@@ -63,9 +63,9 @@ pipeline {
                                             sed -i "s|image: simkids/backend:.*|image: simkids/backend:${CURRENT_VERSION}|" /home/master/cicd/k8s/backend/backend-deployment.yml
 
                                             # 업데이트된 Deployment, Service, Ingress 적용
-                                            sed -i "s/backend-deployment-.*$/backend-deployment-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-deployment.yml
-                                            sed -i "s/backend-service-.*$/backend-service-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-svc.yml
-                                            sed -i "s/backend-ingress-.*$/backend-ingress-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i "s/backend-deployment-${PREVIOUS_VERSION}.*$/backend-deployment-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            sed -i "s/backend-service-${PREVIOUS_VERSION}.*$/backend-service-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-svc.yml
+                                            sed -i "s/backend-ingress-${PREVIOUS_VERSION}.*$/backend-ingress-${CURRENT_VERSION}/" /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
