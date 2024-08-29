@@ -99,6 +99,8 @@ pipeline {
                                             kubectl apply -f backend-svc.yml
                                             kubectl apply -f backend-ingress.yml
 
+                                            sleep 30
+
                                             check_health() {
                                                 for i in {1..12}; do
                                                     HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
@@ -116,6 +118,7 @@ pipeline {
                                             bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
                                             kubectl apply -f backend-ingress.yml
 
+                                            sleep 20
                                             INGRESSES=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             INGRESS_ARRAY=($INGRESSES)
                                             for INGRESS in "${INGRESS_ARRAY[@]}"; do
