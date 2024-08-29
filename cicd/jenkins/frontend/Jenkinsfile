@@ -118,12 +118,6 @@ pipeline {
 
                                             check_health
 
-                                            bash frontend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\"50\\" > frontend-ingress.yml
-                                            kubectl apply -f frontend-ingress.yml
-                                            sleep 20
-
-                                            check_health
-
                                             if [ "$IS_DEFAULT" = false ]; then
                                                 INGRESS_SVC=$(grep "name:" frontend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^frontend-svc)
                                                 sed -i "s|${INGRESS_SVC}|frontend-svc-v${CURRENT_VERSION}|g" frontend-ingress-default.yml
