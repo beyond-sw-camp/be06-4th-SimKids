@@ -8,20 +8,18 @@ pipeline {
 
     stages {
         stage('Initialize Version') {
-                steps {
-                    script {
-                        // BUILD_NUMBER를 사용하여 버전 번호 설정
-                        def buildNumber = env.BUILD_ID.toInteger()
-                        env.CURRENT_VERSION = "${buildNumber}"
+            steps {
+                script {
+                    // BUILD_NUMBER를 사용하여 버전 번호 설정
+                    def buildNumber = env.BUILD_ID.toInteger()
+                    env.CURRENT_VERSION = "${buildNumber}"
 
-                        // 이전 버전 설정
-                        def previousVersionNumber = buildNumber - 1
-                        env.PREVIOUS_VERSION = "${previousVersionNumber}"
-
-
-                    }
+                    // 이전 버전 설정
+                    def previousVersionNumber = buildNumber - 1
+                    env.PREVIOUS_VERSION = "${previousVersionNumber}"
                 }
             }
+        }
 
         stage('Git clone') {
             steps {
@@ -62,9 +60,9 @@ pipeline {
             steps {
                 script {
                     writeFile file: 'env.properties', text: """
-                                            CURRENT_VERSION=${env.CURRENT_VERSION}
-                                            PREVIOUS_VERSION=${env.PREVIOUS_VERSION}
-                                        """
+                        CURRENT_VERSION=${env.CURRENT_VERSION}
+                        PREVIOUS_VERSION=${env.PREVIOUS_VERSION}
+                    """
                     // 파일 전송 및 배포 시작
                     sshPublisher(
                         continueOnError: false,
@@ -135,17 +133,17 @@ pipeline {
             sh 'echo 실패'
         }
         success {
-        sh '''
-        sh 'echo 성공'
-        DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-        DEPLOYMENT_ARRAY=($DEPLOYMENTS)
-        for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
-            kubectl delete -f DEPLOYMENT
-            # 여기에 필요한 명령어를 추가
-        done
-        bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
-        kubectl apply -f backend-ingress.yml
-        '''
-
+            sh '''
+            echo 성공
+            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+            DEPLOYMENT_ARRAY=($DEPLOYMENTS)
+            for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
+                kubectl delete -f $DEPLOYMENT
+                # 여기에 필요한 명령어를 추가
+            done
+            bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
+            kubectl apply -f backend-ingress.yml
+            '''
+        }
     }
 }
