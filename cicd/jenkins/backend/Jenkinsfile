@@ -85,6 +85,7 @@ pipeline {
 
                                             DEPLOYMENTS=$(kubectl get deployments --no-headers | grep ^backend- | awk '{print $1}')
 
+                                            IS_DEFAULT=false
                                             if [ -n "$DEPLOYMENTS" ]; then
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
@@ -95,6 +96,7 @@ pipeline {
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
                                                 bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress-default.yml
                                                 kubectl apply -f backend-ingress-default.yml
+                                                IS_DEFAULT=true
                                             fi
 
                                             kubectl apply -f backend-deployment.yml
@@ -117,16 +119,18 @@ pipeline {
 
                                             check_health
 
-                                            def INGRESS_SVC = $(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
-                                            sed -i "s|${INGRESS_SVC}|backend-svc-v${CURRENT_VERSION}|g" backend-ingress-default.yml
-                                            kubectl apply -f backend-ingress-default.yml
+                                            if [ "$IS_DEFAULT" = false ]; then
+                                                INGRESS_SVC= $(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
+                                                sed -i "s|${INGRESS_SVC}|backend-svc-v${CURRENT_VERSION}|g" backend-ingress-default.yml
+                                                kubectl apply -f backend-ingress-default.yml
+                                                sleep 20
 
-                                            sleep 20
-                                            INGRESSES=$(kubectl get ingresses --no-headers | grep ^backend-ingress-v${CURRENT_VERSION} | awk '{print $1}')
-                                            INGRESS_ARRAY=($INGRESSES)
-                                            for INGRESS in "${INGRESS_ARRAY[@]}"; do
-                                                kubectl delete ingress $INGRESS
-                                            done
+                                                INGRESSES=$(kubectl get ingresses --no-headers | grep ^backend-ingress-v${CURRENT_VERSION} | awk '{print $1}')
+                                                INGRESS_ARRAY=($INGRESSES)
+                                                for INGRESS in "${INGRESS_ARRAY[@]}"; do
+                                                  kubectl delete ingress $INGRESS
+                                                done
+                                            fi
 
                                             SERVICES=$(kubectl get services --no-headers | grep -v "^backend-svc-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             SERVICE_ARRAY=($SERVICES)
