@@ -94,9 +94,12 @@ pipeline {
                                             DEPLOY=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             SVC=$(kubectl get services --no-headers | grep -v "^backend-svc-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             INGRESS=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-                                               sed -i "s|${DEPLOY}.*|backend-deployment-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
-                                               sed -i "s|${SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
-                                               sed -i "s|${INGRESS}.*|backend-ingress-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            INGRESS_SVC=$(grep "name:" /home/master/cicd/k8s/backend/backend-ingress.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
+
+                                            sed -i "s|${DEPLOY}.*|backend-deployment-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            sed -i "s|${SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
+                                            sed -i "s|${INGRESS}.*|backend-ingress-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
+                                            sed -i "s|${INGRESS_SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
 
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
