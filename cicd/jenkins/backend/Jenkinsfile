@@ -105,7 +105,7 @@ pipeline {
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
                                             kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
 
-                                            sleep 3
+                                            sleep 60
 
                                             # 카나리 배포 시작 - 10% 트래픽 전환
                                             echo "Starting Canary Deployment with 10% traffic"
