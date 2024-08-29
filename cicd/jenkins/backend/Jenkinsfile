@@ -117,11 +117,11 @@ pipeline {
 
                                             check_health
                                             def INGRESS_SVC = $(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
-                                            sed -i "s|${INGRESS_SVC}.*|backend-service-${CURRENT_VERSION}|g" backend-ingress-default.yml
+                                            sed -i "s|${INGRESS_SVC}.*|backend-svc-v${CURRENT_VERSION}|g" backend-ingress-default.yml
                                             kubectl apply -f backend-ingress-default.yml
 
                                             sleep 20
-                                            INGRESSES=$(kubectl get ingresses --no-headers | grep ^backend-ingress-v118 | awk '{print $1}')
+                                            INGRESSES=$(kubectl get ingresses --no-headers | grep ^backend-ingress-v${CURRENT_VERSION} | awk '{print $1}')
                                             INGRESS_ARRAY=($INGRESSES)
                                             for INGRESS in "${INGRESS_ARRAY[@]}"; do
                                                 kubectl delete ingress $INGRESS
