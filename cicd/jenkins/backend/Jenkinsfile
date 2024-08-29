@@ -117,6 +117,15 @@ pipeline {
                                             check_health
                                             bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\\"100\\\" > backend-ingress.yml
 
+                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+                                            DEPLOYMENT_ARRAY=($DEPLOYMENTS)
+                                            for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
+                                              kubectl delete -f $DEPLOYMENT
+                                                            # 여기에 필요한 명령어를 추가
+                                            done
+                                            bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
+                                            kubectl apply -f backend-ingress.yml
+
                                         '''
                                     )
                                 ]
@@ -135,14 +144,6 @@ pipeline {
         success {
             sh '''
             echo 성공
-            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-            DEPLOYMENT_ARRAY=($DEPLOYMENTS)
-            for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
-                kubectl delete -f $DEPLOYMENT
-                # 여기에 필요한 명령어를 추가
-            done
-            bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
-            kubectl apply -f backend-ingress.yml
             '''
         }
     }
