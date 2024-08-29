@@ -78,7 +78,7 @@ pipeline {
                                         execCommand: '''
                                             # 새 버전 배포
                                             set -a
-                                                . /home/master/env.properties
+                                            . /home/master/env.properties
                                             set +a
 
                                             source env.properties
@@ -89,12 +89,12 @@ pipeline {
                                             if [ -n "$DEPLOYMENTS" ]; then
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                                bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\\"50\\\" > backend-ingress.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} "true" "50" > backend-ingress.yml
                                                 kubectl apply -f backend-ingress.yml
                                             else
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                                bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress-default.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} "false" > backend-ingress-default.yml
                                                 kubectl apply -f backend-ingress-default.yml
                                                 IS_DEFAULT=true
                                             fi
@@ -116,32 +116,31 @@ pipeline {
                                                 done
                                             }
 
-
                                             check_health
 
                                             if [ "$IS_DEFAULT" = false ]; then
-                                                INGRESS_SVC= $(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
+                                                INGRESS_SVC=$(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
                                                 sed -i "s|${INGRESS_SVC}|backend-svc-v${CURRENT_VERSION}|g" backend-ingress-default.yml
                                                 kubectl apply -f backend-ingress-default.yml
                                                 sleep 20
 
                                                 INGRESSES=$(kubectl get ingresses --no-headers | grep ^backend-ingress-v${CURRENT_VERSION} | awk '{print $1}')
-                                                INGRESS_ARRAY=($INGRESSES)
-                                                for INGRESS in "${INGRESS_ARRAY[@]}"; do
-                                                  kubectl delete ingress $INGRESS
+                                                INGRESSES_ARRAY=($INGRESSES)
+                                                for INGRESS in "${INGRESSES_ARRAY[@]}"; do
+                                                    kubectl delete ingress $INGRESS
                                                 done
 
                                                 SERVICES=$(kubectl get services --no-headers | grep -v "^backend-svc-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-                                                SERVICE_ARRAY=($SERVICES)
-                                                for SERVICE in "${SERVICE_ARRAY[@]}"; do
+                                                SERVICES_ARRAY=($SERVICES)
+                                                for SERVICE in "${SERVICES_ARRAY[@]}"; do
                                                     kubectl delete service $SERVICE
                                                 done
 
-                                                DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v ^backend-deployment-v${CURRENT_VERSION} | | grep ^backend | awk '{print $1}')
-                                                DEPLOYMENT_ARRAY=($DEPLOYMENTS)
-                                                for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
-                                                     echo ${DEPLOYMENT} 삭제
-                                                     kubectl delete deployment $DEPLOYMENT
+                                                DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v ^backend-deployment-v${CURRENT_VERSION} | grep ^backend | awk '{print $1}')
+                                                DEPLOYMENTS_ARRAY=($DEPLOYMENTS)
+                                                for DEPLOYMENT in "${DEPLOYMENTS_ARRAY[@]}"; do
+                                                    echo ${DEPLOYMENT} 삭제
+                                                    kubectl delete deployment $DEPLOYMENT
                                                 done
                                             fi
 
