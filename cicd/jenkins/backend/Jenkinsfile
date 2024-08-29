@@ -99,8 +99,6 @@ pipeline {
                                             kubectl apply -f backend-svc.yml
                                             kubectl apply -f backend-ingress.yml
 
-                                            sleep 60
-
                                             check_health() {
                                                 for i in {1..12}; do
                                                     HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/test)
