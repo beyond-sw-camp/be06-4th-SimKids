@@ -90,11 +90,11 @@ pipeline {
                                             if [ -n "$DEPLOYMENTS" ]; then
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                                bash backend-ingress.sh ${CURRENT_VERSION} \"true\" > backend-ingress.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} 'true' > backend-ingress.yml
                                             else
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                                bash backend-ingress.sh ${CURRENT_VERSION} \"false\" > backend-ingress.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} 'false' > backend-ingress.yml
                                             fi
 
                                             kubectl apply -f backend-deployment.yml
