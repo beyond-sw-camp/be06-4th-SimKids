@@ -99,7 +99,7 @@ pipeline {
                                             kubectl apply -f backend-svc.yml
                                             kubectl apply -f backend-ingress.yml
 
-                                            sleep 30
+                                            sleep 60
 
                                             check_health() {
                                                 for i in {1..12}; do
