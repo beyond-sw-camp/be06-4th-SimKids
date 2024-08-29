@@ -12,13 +12,16 @@
 
 ---
 ## 2. 기술 스택
+<h4>CI/CD</h4>
+<div class="stack-container">
+    <img src="https://img.shields.io/badge/jenkins-CF4045?style=for-the-badge&logo=jenkins&logoColor=white">
+    <img src="https://img.shields.io/badge/docker-002260?style=for-the-badge&logo=docker&logoColor=white">
+    <img src="https://img.shields.io/badge/kubernetes-%231572B6?style=for-the-badge&logo=kubernetes&logoColor=white">
+
 <h4> Backend</h4>
 <div class="stack-container">
-    <img src="https://img.shields.io/badge/linux-FCC624?style=for-the-badge&logo=linux&logoColor=white">
-    <img src="https://img.shields.io/badge/ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white">
     <img src="https://img.shields.io/badge/java-F7DF1E?style=for-the-badge&logo=java&logoColor=white">
-    <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
-    <img src="https://img.shields.io/badge/spring security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white">	
+    <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">	
 </div>
 
 <h4>Frontend</h4>
@@ -27,22 +30,22 @@
     <img src="https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white">
     <img src="https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E">
     <img src="https://img.shields.io/badge/vuejs-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D">
-    <img src="https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white">
-    <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white"/>
-    <img src="https://img.shields.io/badge/amazons3-569A31?style=for-the-badge&logo=amazons3&logoColor=white"/>
-    <img src="https://img.shields.io/badge/Router-CA4245?style=for-the-badge&logo=Router&logoColor=white"/>
 </div>
 
-<h4>Database</h4>
-<div class="stack-container">
-    <img src="https://img.shields.io/badge/mariadb-003545?style=for-the-badge&logo=mariadb&logoColor=white">
-</div>
+<h4>Server</h4>
+ <img src="https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white">
 
-<h4>CI/CD</h4>
-<div class="stack-container">
-    <img src="https://img.shields.io/badge/jenkins-CF4045?style=for-the-badge&logo=jenkins&logoColor=white">
-    <img src="https://img.shields.io/badge/docker-002260?style=for-the-badge&logo=docker&logoColor=white">
-    <img src="https://img.shields.io/badge/k8s-%231572B6?style=for-the-badge&logo=k8s&logoColor=white">
+
+<h4>VCS</h4>
+<img src="https://img.shields.io/badge/git-F05032?style=for-the-badge&logo=git&logoColor=white"/>
+
+<h4>협업 툴</h4>
+<img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white"/>
+<img src="https://img.shields.io/badge/googledocs-4285F4?style=for-the-badge&logo=googledocs&logoColor=white"/>
+<img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white"/>
+
+<h4> OS </h4>
+<img src="https://img.shields.io/badge/ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white">
 </div>
 
 <br><br>
@@ -50,10 +53,19 @@
 ---
 
 ## 3. 프로젝트 목표
-### **3.1 k8s, Kubernetes, Jenkins, Docker를 이용해 백엔드, 프론트 엔드에 CI/CD를 적용한다.** 
+### 3.1 애플리케이션을 Docker 이미지로 변환하여 일관된 실행환경 제공
+애플리케이션에 안정적이고 일관된 실행 환경을 제공하기 위해, JAR 파일 형태 대신 운영에 필요한 모든 종속성을 포함하고 격리된 환경에서 실행되는 Docker 이미지로 변환하는 것을 목표로 합니다. <br>
+이를 통해 애플리케이션의 실행 환경을 표준화하고, 환경 간의 차이로 인한 문제를 최소화하여 보다 안정적인 운영을 지원할 수 있습니다.
 
-효과적인 버그 및 오류 관리를 하면서 시스템의 안정성을 유지할 수 있습니다. 카나리 배포 방식을 통해 배포 리스크를 최소화하면서 일관성을 유지할 수 있습니다. 
-배포 속도를 향상시켜 빠른 배포와 개선을 동시에 실현할 수 있습니다.<br>
+### 3.2 컨테이너 오케스트레이션툴을 활용한 무중단 배포 (K8S)
+배포 시, 컨테이너 오케스트레이션 툴을 사용하여 중단 없이 기존 시스템의 가용성을 유지하면서 새로운 버전의 애플리케이션을 원활하게 배포하는 것을 목표로 합니다.<br>
+이를 통해 새로운 버전으로의 운영환경 전환 시 사용자에게 중단 없이 최신 기능을 제공하고, 배포 과정에서 혹여나 발생할지도 모르는 각종 리스크를 최소화할 수 있습니다.
+
+### 3.3 Jenkins 파이프라인 구축으로 CI/CD 자동화
+젠킨스를 사용한 CI/CD 파이프라인을 구축하여 원격 저장소에 저장된 코드를 Kubernetes 프로덕션 환경에 배포함으로써 개발-배포 프로세스를 자동화하고 빠른 배포 주기를 유지하는 것을 목표로 합니다. <br>
+이를 통해 새로운 코드가 지속적으로 통합되어 시스템을 항상 최신 상태로 유지할 수 있으며, 신속하게 버그를 수정하고 기능을 개선할 수 있습니다.
+
+
 
 <br>
 
@@ -102,4 +114,3 @@ Canary 배포는 새로운 버전을 소수의 사용자에게 먼저 배포한 
 
 ---
 ## 7. 배포 시나리오
-
