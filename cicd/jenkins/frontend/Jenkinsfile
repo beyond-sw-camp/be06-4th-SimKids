@@ -34,7 +34,7 @@ pipeline {
                 sh '''
                 cd frontend
                 npm i
-                npm run buildd
+                npm run build
                 '''
             }
         }
