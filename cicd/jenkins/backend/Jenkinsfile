@@ -104,9 +104,10 @@ pipeline {
 
     post {
         failure {
+            sh 'echo 실패'
         }
         success {
-            // 배포 성공 시 기존 리소스 제거 및 새 버전으로 업데이트
+            sh 'echo 성공'
         }
     }
 }
