@@ -8,7 +8,7 @@
 | <img src="https://avatars.githubusercontent.com/u/69503955?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/86238720?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/77095330?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/101664417?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/152248322?v=4" width="100" height="100"/> |
 | [@kangkings](https://github.com/kangkings) | [@syy0O](https://github.com/syy0O) | [@ohgyulim](https://github.com/ohgyulim) | [@NakyungSong](https://github.com/NakyungSong) | [@kkkeess](https://github.com/kkkeess) |
 
-<br><br>
+<br>
 
 ---
 ## 2. 기술 스택
@@ -48,7 +48,7 @@
 <img src="https://img.shields.io/badge/ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white">
 </div>
 
-<br><br>
+<br>
 
 ---
 
@@ -64,8 +64,6 @@
 ### 3.3 Jenkins 파이프라인 구축으로 CI/CD 자동화
 젠킨스를 사용한 CI/CD 파이프라인을 구축하여 원격 저장소에 저장된 코드를 Kubernetes 프로덕션 환경에 배포함으로써 개발-배포 프로세스를 자동화하고 빠른 배포 주기를 유지하는 것을 목표로 합니다. <br>
 이를 통해 새로운 코드가 지속적으로 통합되어 시스템을 항상 최신 상태로 유지할 수 있으며, 신속하게 버그를 수정하고 기능을 개선할 수 있습니다.
-
-
 
 <br>
 
@@ -83,13 +81,18 @@
 
 Kubernetes의 Ingress, Rolling Update, Probe 기능을 활용해 운영 중단 없이 애플리케이션을 점진적으로 업데이트할 수 있도록 구성했습니다. 
 
+<br>
+
 ---
 ## 5. 시스템 아키텍쳐
 **배포 전**
+<br>
 ![배포 전](https://github.com/user-attachments/assets/87021bb9-f606-4276-855d-d7c427dfe076)
 **배포 중**
+<br>
 ![배포 중](https://github.com/user-attachments/assets/c39efb4f-fbbb-464e-94b8-b3d2a79b8e1c)
 **배포 후**
+<br>
 ![배포 후](https://github.com/user-attachments/assets/b60ca54e-5e60-49cd-85c0-1546d2b18a1b)
 
 ### 5.1 배포 환경
@@ -112,10 +115,7 @@ Kubernetes의 Ingress, Rolling Update, Probe 기능을 활용해 운영 중단 �
  
 각 Deployment는 2개의파드를 Rolling Update방식으로 생성하며, Pod 생성 시 Probe를 설정하여 Down Time을 최소화하는 방식으로 구성하였습니다.
 
-
-
-
-<br><br>
+<br>
 
 ---
 ## 6. Canary 무중단 배포 방식을 선택한 이유
@@ -127,10 +127,12 @@ Kubernetes의 Ingress, Rolling Update, Probe 기능을 활용해 운영 중단 �
 
 Canary 배포는 새로운 버전의 애플리케이션을 준비하고 테스트를 거쳐 점진적으로 트래픽을 옮겨가며 배포하는데, 배포과정에서 문제가 생기더라도 일부만 롤백을 진행하면 되고 이로 인한 피해가 일부에서 그치는 등 위에서 언급한 우리 시스템의 요구사항을 전부 충족시켜 줄 수 있었을 뿐만 아니라 AB테스트도 용이하다는 추가적인 장점도 있었기 때문에 배포방식으로 선택하였습니다.
 
+<br>
+
 ---
 ## 7. 배포 테스트
 
-### 7-1 배포 시나리오
+### 7.1 시나리오
 > 코드 작성 → 운영환경 배포까지 전체 시나리오
 
 1. 개발자가 작성한 코드가 검토를 거쳐 각각 backend-dev, frontend-dev 브랜치에 merge
@@ -143,8 +145,15 @@ Canary 배포는 새로운 버전의 애플리케이션을 준비하고 테스�
 <br> 3-3. 경로에 위치한 Dockerfile에 따라 Dockerize
 <br> 3-4. ssh로 K8S master에 접속하여 배포 스크립트 실행
 
-### 7-2 배포 테스트
+### 7.2 테스트 영상
 
 **backend**
 
+<img src="https://github.com/user-attachments/assets/b5d3d9e4-b98f-4385-86b0-d44f4f9d426f" alt="카나리배포_Back" width="700"/>
+
+<br><br>
+
 **frontend**
+
+<img src="https://github.com/user-attachments/assets/ffd093a0-348b-4c0a-8b7b-d0071630e62c" alt="카나리배포_Front" width="700"/>
+
