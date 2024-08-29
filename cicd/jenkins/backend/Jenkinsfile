@@ -115,7 +115,8 @@ pipeline {
 
                                             # 10% 트래픽에 대해 헬스 체크
                                             check_health
-                                            bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\\"100\\\" > backend-ingress.yml
+                                            bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
+                                            kubectl apply -f backend-ingress.yml
 
                                             INGRESSES=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             INGRESS_ARRAY=($INGRESSES)
@@ -137,9 +138,6 @@ pipeline {
                                                             # 여기에 필요한 명령어를 추가
                                             done
 
-
-                                            bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
-                                            kubectl apply -f backend-ingress.yml
                                         '''
                                     )
                                 ]
