@@ -117,7 +117,7 @@ pipeline {
                                             check_health
                                             bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\\"100\\\" > backend-ingress.yml
 
-                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             DEPLOYMENT_ARRAY=($DEPLOYMENTS)
                                             for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
                                             echo ${DEPLOYMENT} 삭제
