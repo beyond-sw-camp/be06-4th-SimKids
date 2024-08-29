@@ -5,7 +5,7 @@ metadata:
   name: backend-ingress-v$1
 
   annotations:
-    nginx.ingress.kubernetes.io/canary: "false"
+    nginx.ingress.kubernetes.io/canary: \"false\"
     nginx.ingress.kubernetes.io/canary-weight: "10"
 #    nginx.ingress.kubernetes.io/canary-by-header: "canary-version"
 #    nginx.ingress.kubernetes.io/canary-by-header-value: "new"

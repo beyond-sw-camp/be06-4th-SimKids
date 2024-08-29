@@ -2,7 +2,7 @@ echo "
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment-$1
+  name: backend-deployment-v$1
 spec:
   selector:
     matchLabels:
