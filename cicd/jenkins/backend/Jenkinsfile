@@ -12,11 +12,11 @@ pipeline {
                     script {
                         // BUILD_NUMBER를 사용하여 버전 번호 설정
                         def buildNumber = env.BUILD_ID.toInteger()
-                        env.CURRENT_VERSION = "v${buildNumber}"
+                        env.CURRENT_VERSION = "${buildNumber}"
 
                         // 이전 버전 설정
                         def previousVersionNumber = buildNumber - 1
-                        env.PREVIOUS_VERSION = "v${previousVersionNumber}"
+                        env.PREVIOUS_VERSION = "${previousVersionNumber}"
 
 
                     }
