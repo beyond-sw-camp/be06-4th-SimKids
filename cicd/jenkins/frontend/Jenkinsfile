@@ -1,21 +1,40 @@
 pipeline {
     agent any
 
+    environment {
+        // 현재 빌드의 버전과 이전 버전 설정
+        BASE_VERSION = 1
+    }
+
     stages {
+        stage('Initialize Version') {
+            steps {
+                script {
+                    // BUILD_NUMBER를 사용하여 버전 번호 설정
+                    def buildNumber = env.BUILD_ID.toInteger()
+                    env.CURRENT_VERSION = "${buildNumber}"
+
+                    // 이전 버전 설정
+                    def previousVersionNumber = buildNumber - 1
+                    env.PREVIOUS_VERSION = "${previousVersionNumber}"
+                }
+            }
+        }
+
         stage('Git clone') {
             steps {
-                // git clone
+                // Git 클론
                 git branch: 'frontend-dev', url: 'https://github.com/beyond-sw-camp/be06-4th-SimKids.git'
             }
         }
 
         stage('Build') {
             steps {
-                // npm 빌드
+                // gradlew 권한 부여 및 빌드
                 sh '''
                 cd frontend
                 npm i
-                npm run build
+                npm run buildd
                 '''
             }
         }
@@ -23,58 +42,133 @@ pipeline {
         stage('Dockerize') {
             steps {
                 script {
-                    // DockerFile로 image build
-                    sh 'echo build..'
-                    sh 'docker build --tag simkids/frontend:1.$BUILD_ID ./frontend'
+                    // Docker 이미지 빌드 및 푸시
+                    sh "docker build --tag simkids/frontend:${BUILD_ID} ./frontend"
 
-                    // Docker Login
-                    sh 'echo login..'
+                    // Docker 로그인
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credential', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                            sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                     }
 
-                    // Docker Push
-                    sh 'echo docker push..'
-                    sh 'docker push simkids/frontend:1.$BUILD_ID'
+                    // Docker 푸시
+                    sh "docker push simkids/frontend:${BUILD_ID}"
                 }
             }
         }
 
-        stage('sshPublish'){
+        stage('Deploy Canary') {
             steps {
-                // SSH 전송 플러그인 사용
-                sshPublisher(
-                    // 오류 발생 시 진행을 멈춤
-                    continueOnError: false,
-                    // 오류 발생 시 파이프라인을 실패시킴
-                    failOnError: true,
-                    // 전송자 목록
-                    publishers: [
-                        // SSH 전송 설명
-                        sshPublisherDesc(
-                            // SSH 서버 설정 이름 지정 ( master 노드 )
-                            configName: "k8s-master",
-                            // 자세한 출력 모드 활성화
-                            verbose: true,
-                            transfers: [
-                                sshTransfer(
-                                    // 전송할 파일을 쉼표로 구분한 문자열로 지정
-                                    sourceFiles: 'cicd/k8s/frontend/frontend-deployment.yml, cicd/k8s/frontend/frontend-ingress.yml, cicd/k8s/frontend/frontend-svc.yml',
-                                    // 원격 디렉토리 지정 ( 원격서버로 파일을 전송할 위치 )
-                                    remoteDirectory: "/home/master/",
-                                    // 전송 후 야멜 파일 실행
-                                    execCommand: '''
-                                        sed -i "s/latest/1.$BUILD_ID/g" /home/master/cicd/k8s/frontend/frontend-deployment.yml
-                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-deployment.yml
-                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-ingress.yml
-                                        kubectl apply -f /home/master/cicd/k8s/frontend/frontend-svc.yml
-                                    '''
-                                )
-                            ]
-                        )
-                    ]
-                )
+                script {
+                    writeFile file: 'env.properties', text: """
+                        CURRENT_VERSION=${env.CURRENT_VERSION}
+                        PREVIOUS_VERSION=${env.PREVIOUS_VERSION}
+                    """
+                    // 파일 전송 및 배포 시작
+                    sshPublisher(
+                        continueOnError: false,
+                        failOnError: true,
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: "k8s-master",
+                                verbose: true,
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: 'env.properties',
+                                        remoteDirectory: "/home/master/",
+                                        execCommand: '''
+                                            # 새 버전 배포
+                                            set -a
+                                            . /home/master/env.properties
+                                            set +a
+
+                                            source env.properties
+
+                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep ^frontend- | awk '{print $1}')
+
+                                            IS_DEFAULT=false
+                                            if [ -n "$DEPLOYMENTS" ]; then
+                                                bash frontend-deployment.sh ${CURRENT_VERSION} > frontend-deployment.yml
+                                                bash frontend-svc.sh ${CURRENT_VERSION} > frontend-svc.yml
+                                                bash frontend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\"30\\" > frontend-ingress.yml
+                                                kubectl apply -f frontend-ingress.yml
+                                            else
+                                                bash frontend-deployment.sh ${CURRENT_VERSION} > frontend-deployment.yml
+                                                bash frontend-svc.sh ${CURRENT_VERSION} > frontend-svc.yml
+                                                bash frontend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > frontend-ingress-default.yml
+                                                kubectl apply -f frontend-ingress-default.yml
+                                                IS_DEFAULT=true
+                                            fi
+
+                                            kubectl apply -f frontend-deployment.yml
+                                            kubectl apply -f frontend-svc.yml
+
+                                            sleep 60
+
+                                            check_health() {
+                                                for i in {1..12}; do
+                                                    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "canary-version: new" http://192.0.30.101/api/test)
+                                                    echo ${HTTP_STATUS}
+                                                    if [ "$HTTP_STATUS" != "200" ]; then
+                                                        echo "Error: Service did not return 200 status. Exiting..."
+                                                        exit 1
+                                                    fi
+                                                    sleep 1
+                                                done
+                                            }
+
+                                            check_health
+
+                                            bash frontend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\"50\\" > frontend-ingress.yml
+                                            kubectl apply -f frontend-ingress.yml
+                                            sleep 20
+
+                                            check_health
+
+                                            if [ "$IS_DEFAULT" = false ]; then
+                                                INGRESS_SVC=$(grep "name:" frontend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^frontend-svc)
+                                                sed -i "s|${INGRESS_SVC}|frontend-svc-v${CURRENT_VERSION}|g" frontend-ingress-default.yml
+                                                kubectl apply -f frontend-ingress-default.yml
+                                                sleep 20
+
+                                                INGRESSES=$(kubectl get ingresses --no-headers | grep ^frontend-ingress-v${CURRENT_VERSION} | awk '{print $1}')
+                                                INGRESSES_ARRAY=($INGRESSES)
+                                                for INGRESS in "${INGRESSES_ARRAY[@]}"; do
+                                                    kubectl delete ingress $INGRESS
+                                                done
+
+                                                SERVICES=$(kubectl get services --no-headers | grep -v "^frontend-svc-v${CURRENT_VERSION}" | grep ^frontend | awk '{print $1}')
+                                                SERVICES_ARRAY=($SERVICES)
+                                                for SERVICE in "${SERVICES_ARRAY[@]}"; do
+                                                    kubectl delete service $SERVICE
+                                                done
+
+                                                DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v ^frontend-deployment-v${CURRENT_VERSION} | grep ^frontend | awk '{print $1}')
+                                                DEPLOYMENTS_ARRAY=($DEPLOYMENTS)
+                                                for DEPLOYMENT in "${DEPLOYMENTS_ARRAY[@]}"; do
+                                                    echo ${DEPLOYMENT} 삭제
+                                                    kubectl delete deployment $DEPLOYMENT
+                                                done
+                                            fi
+
+                                        '''
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
             }
+        }
+    }
+
+    post {
+        failure {
+            sh 'echo 실패'
+        }
+        success {
+            sh '''
+            echo 성공
+            '''
         }
     }
 }

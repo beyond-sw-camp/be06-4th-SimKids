@@ -1,10 +1,11 @@
+echo "
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontend-ingress-new
+  name: frontend-ingress-v$1
   annotations:
-    nginx.ingress.kubernetes.io/canary: "true"
-    nginx.ingress.kubernetes.io/canary-weight: "50"
+    nginx.ingress.kubernetes.io/canary: $2
+    nginx.ingress.kubernetes.io/canary-weight: $3
 spec:
   ingressClassName: nginx
   rules:
@@ -14,6 +15,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: frontend-svc-v2
+                name: frontend-svc-v$1
                 port:
                   number: 80
+"
