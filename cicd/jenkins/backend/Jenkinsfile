@@ -75,7 +75,7 @@ pipeline {
                                 verbose: true,
                                 transfers: [
                                     sshTransfer(
-                                        sourceFiles: 'cicd/k8s/backend/backend-deployment.yml, cicd/k8s/backend/backend-svc.yml, cicd/k8s/backend/backend-ingress.yml, env.properties',
+                                        sourceFiles: 'env.properties',
                                         remoteDirectory: "/home/master/",
                                         execCommand: '''
                                             # 새 버전 배포
@@ -84,79 +84,13 @@ pipeline {
                                             set +a
 
                                             source env.properties
+                                            bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
+                                            bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
+                                            bash backend-ingress.sh ${CURRENT_VERSION} > backend-ingress.yml
 
-                                            echo ${CURRENT_VERSION}
-                                            echo ${PREVIOUS_VERSION}
-
-                                            sed -i "s|image: simkids/backend:.*|image: simkids/backend:${BUILD_ID}|" /home/master/cicd/k8s/backend/backend-deployment.yml
-
-                                            # 업데이트된 Deployment, Service, Ingress 적용
-                                            DEPLOY=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-                                            DEPLOY_TYPE=$(grep "type: " /home/master/cicd/k8s/backend/backend-deployment.yml | awk -F "type: " '{print $2}' | grep ^backend | head -1)
-                                            DEPLOY_VER=$(grep "ver: " /home/master/cicd/k8s/backend/backend-deployment.yml | awk -F "ver: " '{print $2}' | head -1)
-
-                                            SVC=$(kubectl get services --no-headers | grep -v "^backend-svc-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-                                            SVC_TYPE=$(grep "type: " /home/master/cicd/k8s/backend/backend-svc.yml | awk -F "type: " '{print $2}')
-                                            SVC_VER=$(grep "ver: " /home/master/cicd/k8s/backend/backend-svc.yml | awk -F "ver: " '{print $2}')
-
-                                            INGRESS=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
-                                            INGRESS_SVC=$(grep "name:" /home/master/cicd/k8s/backend/backend-ingress.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
-
-                                            sed -i "s|${DEPLOY}.*|backend-deployment-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
-                                            sed -i "s|${DEPLOY_TYPE}.*|backend-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
-                                            sed -i "s|${DEPLOY_VER}.*|v${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
-
-                                            sed -i "s|${SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
-                                            sed -i "s|${SVC_TYPE}.*|backend-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
-                                            sed -i "s|${SVC_VER}.*|v${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
-
-                                            sed -i "s|${INGRESS}.*|backend-ingress-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            sed -i "s|${INGRESS_SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
-
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-deployment.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-svc.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
-
-                                            sleep 60
-
-                                            # 카나리 배포 시작 - 10% 트래픽 전환
-                                            echo "Starting Canary Deployment with 10% traffic"
-                                            sed -i 's/canary-weight: .*/canary-weight: "10"/' /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
-
-                                            # 헬스 체크 함수 정의
-                                            check_health() {
-                                                for i in {1..12}; do
-                                                    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://192.0.30.101/test)
-                                                    echo ${HTTP_STATUS}
-                                                    if [ "$HTTP_STATUS" != "200" ]; then
-                                                        echo "Error: Service did not return 200 status. Exiting..."
-                                                        exit 1
-                                                    fi
-                                                    sleep 1
-                                                done
-                                            }
-
-                                            # 10% 트래픽에 대해 헬스 체크
-                                            check_health
-
-                                            # 50% 트래픽 전환
-                                            echo "Updating Canary to 50% traffic"
-                                            sed -i 's|canary-weight: .*|canary-weight: "50"|' /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
-
-                                            # 50% 트래픽에 대해 헬스 체크
-                                            check_health
-
-                                            # 100% 트래픽 전환
-                                            echo "Finalizing Canary Deployment with 100% traffic"
-                                            sed -i 's|canary-weight: .*|canary-weight: "100"|' /home/master/cicd/k8s/backend/backend-ingress.yml
-                                            kubectl apply -f /home/master/cicd/k8s/backend/backend-ingress.yml
-
-                                            # 최종 헬스 체크
-                                            check_health
-
-                                            echo "카나리 배포 성공! 100% 트래픽 전환 완료"
+                                            kubectl apply -f backend-deployment.yml
+                                            kubectl apply -f backend-svc.yml
+                                            kubectl apply -f backend-ingress.yml
                                         '''
                                     )
                                 ]

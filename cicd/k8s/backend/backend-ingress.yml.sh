@@ -1,7 +1,8 @@
+echo "
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: backend-ingress-v0
+  name: backend-ingress-v$1
 
   annotations:
     nginx.ingress.kubernetes.io/canary: "false"
@@ -14,10 +15,11 @@ spec:
   rules:
     - http:
         paths:
-          - path: /1
+          - path: /
             pathType: Prefix
             backend:
               service:
-                name: backend-svc-v0
+                name: backend-svc-v$1
                 port:
                   number: 8080
+"

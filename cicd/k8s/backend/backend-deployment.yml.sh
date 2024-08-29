@@ -1,12 +1,13 @@
+echo "
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment-v0
+  name: backend-deployment-$1
 spec:
   selector:
     matchLabels:
       type: backend
-      ver: v1
+      ver: v$1
   replicas: 2
   strategy:
     type: RollingUpdate
@@ -15,11 +16,11 @@ spec:
     metadata:
       labels:
         type: backend
-        ver: v1
+        ver: v$1
     spec:
       containers:
         - name: backend
-          image: simkids/backend:latest
+          image: simkids/backend:$1
           readinessProbe:
             httpGet:
               path: /test
@@ -34,3 +35,4 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
       terminationGracePeriodSeconds: 0
+"
