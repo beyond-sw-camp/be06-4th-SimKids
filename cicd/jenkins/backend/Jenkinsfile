@@ -145,7 +145,6 @@ pipeline {
         done
         bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
         kubectl apply -f backend-ingress.yml
-        }
         '''
 
     }
