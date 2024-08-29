@@ -89,7 +89,7 @@ pipeline {
                                             if [ -n "$DEPLOYMENTS" ]; then
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                                bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\"50\\" > backend-ingress.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\"30\\" > backend-ingress.yml
                                                 kubectl apply -f backend-ingress.yml
                                             else
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
@@ -115,6 +115,12 @@ pipeline {
                                                     sleep 1
                                                 done
                                             }
+
+                                            check_health
+
+                                            bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\"50\\" > backend-ingress.yml
+                                            kubectl apply -f backend-ingress.yml
+                                            sleep 5
 
                                             check_health
 
