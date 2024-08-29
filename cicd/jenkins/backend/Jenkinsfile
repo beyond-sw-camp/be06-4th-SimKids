@@ -89,15 +89,16 @@ pipeline {
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
                                                 bash backend-ingress.sh ${CURRENT_VERSION} \\\"true\\\" \\\"50\\\" > backend-ingress.yml
+                                                kubectl apply -f backend-ingress.yml
                                             else
                                                 bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
                                                 bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                                bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress-default.yml
+                                                kubectl apply -f backend-ingress-default.yml
                                             fi
 
                                             kubectl apply -f backend-deployment.yml
                                             kubectl apply -f backend-svc.yml
-                                            kubectl apply -f backend-ingress.yml
 
                                             sleep 60
 
@@ -113,13 +114,14 @@ pipeline {
                                                 done
                                             }
 
-                                            # 10% 트래픽에 대해 헬스 체크
+
                                             check_health
-                                            bash backend-ingress.sh ${CURRENT_VERSION} \\\"false\\\" > backend-ingress.yml
-                                            kubectl apply -f backend-ingress.yml
+                                            def INGRESS_SVC = $(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
+                                            sed -i "s|${INGRESS_SVC}.*|backend-service-${CURRENT_VERSION}|g" backend-ingress-default.yml
+                                            kubectl apply -f backend-ingress-default.yml
 
                                             sleep 20
-                                            INGRESSES=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+                                            INGRESSES=$(kubectl get ingresses --no-headers | grep ^backend-ingress-v118 | awk '{print $1}')
                                             INGRESS_ARRAY=($INGRESSES)
                                             for INGRESS in "${INGRESS_ARRAY[@]}"; do
                                                 kubectl delete ingress $INGRESS
@@ -131,7 +133,7 @@ pipeline {
                                                 kubectl delete service $SERVICE
                                             done
 
-                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-v${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep ^backend-deployment-v${CURRENT_VERSION} | awk '{print $1}')
                                             DEPLOYMENT_ARRAY=($DEPLOYMENTS)
                                             for DEPLOYMENT in "${DEPLOYMENT_ARRAY[@]}"; do
                                             echo ${DEPLOYMENT} 삭제
