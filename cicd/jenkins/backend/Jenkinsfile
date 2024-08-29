@@ -84,9 +84,18 @@ pipeline {
                                             set +a
 
                                             source env.properties
-                                            bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
-                                            bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
-                                            bash backend-ingress.sh ${CURRENT_VERSION} > backend-ingress.yml
+
+                                            DEPLOYMENTS=$(kubectl get deployments --no-headers | grep ^backend- | awk '{print $1}')
+
+                                            if [ -n "$DEPLOYMENTS" ]; then
+                                                bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
+                                                bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} \"true\" > backend-ingress.yml
+                                            else
+                                                bash backend-deployment.sh ${CURRENT_VERSION} > backend-deployment.yml
+                                                bash backend-svc.sh ${CURRENT_VERSION} > backend-svc.yml
+                                                bash backend-ingress.sh ${CURRENT_VERSION} \"false\" > backend-ingress.yml
+                                            fi
 
                                             kubectl apply -f backend-deployment.yml
                                             kubectl apply -f backend-svc.yml
