@@ -71,46 +71,80 @@
 
 ---
 ## 4. 운영 환경
-### 4.1 **[Jenkins] 배포를 위한 파이프라인 구축 환경**
 
-CI/CD 도구인 Jenkins를 사용하여 소스 코드 전달부터 빌드 결과물 생성, 빌드 결과물 전송/실행까지의 파이프라인 구축 및 실행을 자동화했습니다.
-Jenkins의 파이프라인 스크립트를 이용해 코드 푸시 시 자동으로 빌드와 테스트를 수행하도록했습니다. 또한, 빌드 성공 시 K8S에 접속하여 새로운 버전의 애플리케이션 배포를 자동화하도록 했습니다.
+### 4.1 **Kubernetes 운영 환경**
 
-### 4.2 **[K8S] 배포 환경**
+**Kubernetes Cluster**
+<br>
+> 같은 네트워크 대역에 연결된 서로 다른 컴퓨터 4대의 가상머신을 K8S 마스터에 연결하여 하나의  Cluster 환경으로 구성
 
-K8S Cluster를 구성하여 배포했으며, 클러스터는 1대의 Master Node와 4대의 Worker Node로 구성했습니다.
+- 1대의 Master Node (Ubuntu 22.04 | 4 Core CPU, 12GB Mem)
+- 4대의 Worker Node (Ubuntu 22.04 | 4 Core CPU, 8GB Mem)
+
 Kubernetes의 Ingress, Rolling Update, Probe 기능을 활용해 운영 중단 없이 애플리케이션을 점진적으로 업데이트할 수 있도록 구성했습니다. 
 
 ---
 ## 5. 시스템 아키텍쳐
-개발자가 GitHub에 코드를 push하면, GitHub가 Jenkins에 웹훅을 보내 빌드 프로세스를 시작합니다.<br>
-Jenkins는 Docker 이미지를 빌드하여 Docker Hub에 업로드하고, Kubernetes는 배포된 이미지를 받아 새로운 파드를 생성하여 백엔드와 프론트엔드 서비스를 배포합니다.
-
-![시스템아키텍처_수정2](https://github.com/user-attachments/assets/b5c6ce37-b286-47fb-b2b9-e27dd3a10176)
+**배포 전**
+![배포 전](https://github.com/user-attachments/assets/87021bb9-f606-4276-855d-d7c427dfe076)
+**배포 중**
+![배포 중](https://github.com/user-attachments/assets/c39efb4f-fbbb-464e-94b8-b3d2a79b8e1c)
+**배포 후**
+![배포 후](https://github.com/user-attachments/assets/b60ca54e-5e60-49cd-85c0-1546d2b18a1b)
 
 ### 5.1 배포 환경
 
- Kubernetes에 Ingress Controller Service를 이용한 카나리 배포 환경을 구축하였습니다. <br>
-새로운 서비스가 생성될 때, 기존의 서비스와 업데이트된 서비스는 70:30 비율로 트래픽이 분산됩니다.
+- Canary Deployment
+- 70:30 → 50:50 → 0:100의 비율로 점진적인 트래픽 전환
+- 전체 트래픽 전환 완료시, 기존 배포버전 제거
 
 ### 5.2 상세 구성
 
- 프론트엔드와 백엔드 서비스는 두 개의 디플로이먼트를 가지고 있으며, 각각의 디플로이먼트는 Old버전과 New버전을 관리합니다. <br>
-디플로이먼트는 두 개의 Pod를 Rolling Update방식으로 생성하며, Pod 생성 시 Probe를 설정하여 Down Time을 최소화하였습니다.
+**Backend**
+- backend-ingress
+- backend-service
+- backend-deployment
+
+**Frontend**
+- frontend-ingress
+- frontend-service
+- backend-deployment
+ 
+각 Deployment는 2개의파드를 Rolling Update방식으로 생성하며, Pod 생성 시 Probe를 설정하여 Down Time을 최소화하는 방식으로 구성하였습니다.
+
+
 
 
 <br><br>
 
 ---
 ## 6. Canary 무중단 배포 방식을 선택한 이유
-Canary 배포는 새로운 버전을 소수의 사용자에게 먼저 배포한 후, 시스템의 안정성을 모니터링하여 문제 발생 여부를 판단합니다.
-<br>초기 배포 단계에서 문제가 없다면, 점진적으로 더 많은 사용자에게 배포를 확대해 나갑니다. 만약 문제가 발견되면 즉시 롤백하여 영향을 최소화할 수 있다는 장점이 있습니다.
 
-주문 관리 시스템은 운영 시 안정성이 중요한 서비스입니다.
-만약 고객의 주문 처리와 관련된 시스템에서 문제가 발생한다면 서비스에 대한 신뢰도가 크게 하락할 수 있기 때문에 리스크를 최소화하는 것이 최우선이라고 생각했습니다.
-이러한 이유로, 배포 단계에서 문제가 발생하더라도 전체 시스템으로 피해가 확대되지 않기위해 Canary 배포 방식을 선택했습니다.
+주문 관리 시스템은 비즈니스와 직접적으로 연관이 있는 서비스이기 때문에 그 어떤 요소보다도 안정성을 확보하는 것이 가장 중요합니다.
+이러한 시스템의 성격 상 다운 타임이 발생하거나, 전체 시스템이 한번에 영향을 받는다면 치명적일 수 있기 때문에 배포를 진행할 때에도 혹시나 발생할지 모르는 피해를 최소화 해야할 필요가 있었습니다.
 
-<br><br>
+따라서 배포는 기본적으로 다운타임이 없도록 무중단 형태로 진행되어야 했고, 한 번에 새로운 버전으로 배포가 완료되는 것이 아니라 지속적인 테스트를 거쳐 점진적으로 안정성을 확보한 상태에서 진행되어야 했습니다.
+
+Canary 배포는 새로운 버전의 애플리케이션을 준비하고 테스트를 거쳐 점진적으로 트래픽을 옮겨가며 배포하는데, 배포과정에서 문제가 생기더라도 일부만 롤백을 진행하면 되고 이로 인한 피해가 일부에서 그치는 등 위에서 언급한 우리 시스템의 요구사항을 전부 충족시켜 줄 수 있었을 뿐만 아니라 AB테스트도 용이하다는 추가적인 장점도 있었기 때문에 배포방식으로 선택하였습니다.
 
 ---
-## 7. 배포 시나리오
+## 7. 배포 테스트
+
+### 7-1 배포 시나리오
+> 코드 작성 → 운영환경 배포까지 전체 시나리오
+
+1. 개발자가 작성한 코드가 검토를 거쳐 각각 backend-dev, frontend-dev 브랜치에 merge
+
+2. github에서 jenkins서버로 웹훅 전달.
+
+3. merge가 감지된 브랜치에 맞는 jenkins 파이프라인이 동작
+<br> 3-1. 파이프라인이 연결된 브랜치의 파일들 clone
+<br> 3-2. frontend, backend 각각 npm, gradle을 이용해 build
+<br> 3-3. 경로에 위치한 Dockerfile에 따라 Dockerize
+<br> 3-4. ssh로 K8S master에 접속하여 배포 스크립트 실행
+
+### 7-2 배포 테스트
+
+**backend**
+
+**frontend**
