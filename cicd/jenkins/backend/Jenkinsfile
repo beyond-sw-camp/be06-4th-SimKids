@@ -116,8 +116,9 @@ pipeline {
 
 
                                             check_health
+
                                             def INGRESS_SVC = $(grep "name:" backend-ingress-default.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
-                                            sed -i "s|${INGRESS_SVC}.*|backend-svc-v${CURRENT_VERSION}|g" backend-ingress-default.yml
+                                            sed -i "s|${INGRESS_SVC}|backend-svc-v${CURRENT_VERSION}|g" backend-ingress-default.yml
                                             kubectl apply -f backend-ingress-default.yml
 
                                             sleep 20
