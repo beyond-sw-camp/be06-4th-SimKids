@@ -92,12 +92,24 @@ pipeline {
 
                                             # 업데이트된 Deployment, Service, Ingress 적용
                                             DEPLOY=$(kubectl get deployments --no-headers | grep -v "^backend-deployment-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+                                            DEPLOY_TYPE=$(grep "type: " /home/master/cicd/k8s/backend/backend-deployment.yml | awk -F "type: " '{print $2}' | grep ^backend | head -1)
+                                            DEPLOY_VER=$(grep "ver: " /home/master/cicd/k8s/backend/backend-deployment.yml | awk -F "ver: " '{print $2}' | head -1)
+
                                             SVC=$(kubectl get services --no-headers | grep -v "^backend-svc-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
+                                            SVC_TYPE=$(grep "type: " /home/master/cicd/k8s/backend/backend-svc.yml | awk -F "type: " '{print $2}')
+                                            SVC_VER=$(grep "ver: " /home/master/cicd/k8s/backend/backend-svc.yml | awk -F "ver: " '{print $2}')
+
                                             INGRESS=$(kubectl get ingresses --no-headers | grep -v "^backend-ingress-${CURRENT_VERSION}" | grep ^backend | awk '{print $1}')
                                             INGRESS_SVC=$(grep "name:" /home/master/cicd/k8s/backend/backend-ingress.yml | awk -F "name: " '{print $2}' | grep ^backend-svc)
 
                                             sed -i "s|${DEPLOY}.*|backend-deployment-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            sed -i "s|${DEPLOY_TYPE}.*|backend-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
+                                            sed -i "s|${DEPLOY_VER}.*|v${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-deployment.yml
+
                                             sed -i "s|${SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
+                                            sed -i "s|${SVC_TYPE}.*|backend-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
+                                            sed -i "s|${SVC_VER}.*|v${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-svc.yml
+
                                             sed -i "s|${INGRESS}.*|backend-ingress-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
                                             sed -i "s|${INGRESS_SVC}.*|backend-service-${CURRENT_VERSION}|g" /home/master/cicd/k8s/backend/backend-ingress.yml
 
